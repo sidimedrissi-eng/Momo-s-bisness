@@ -531,7 +531,7 @@ function dashboardPage() {
   var html = pageHead(
     "Accueil",
     "Vue d’ensemble de votre activité et de vos indicateurs clés.",
-    '<button class="button primary" onclick="go(\\'sales\\')">+ Nouvelle vente</button>'
+    '<button class="button primary" onclick="go(\'sales\')">+ Nouvelle vente</button>'
   );
 
   html += companyNotice();
@@ -549,9 +549,9 @@ function dashboardPage() {
     '<h2>Activité des ventes</h2>' +
     (company ? chart : empty("Les graphiques apparaîtront après vos premières ventes.")) +
     '</div><div class="card"><h2>Accès rapide</h2>' +
-    '<button class="quick-link" onclick="go(\\'sales\\')"><strong>Nouvelle vente</strong><small>Enregistrer un produit vendu ou une prestation</small></button>' +
-    '<button class="quick-link" onclick="go(\\'products\\')"><strong>Ajouter un article</strong><small>Compléter le catalogue</small></button>' +
-    '<button class="quick-link" onclick="go(\\'finance\\')"><strong>Ajouter une dépense</strong><small>Mettre à jour les charges</small></button>' +
+    '<button class="quick-link" onclick="go(\'sales\')"><strong>Nouvelle vente</strong><small>Enregistrer un produit vendu ou une prestation</small></button>' +
+    '<button class="quick-link" onclick="go(\'products\')"><strong>Ajouter un article</strong><small>Compléter le catalogue</small></button>' +
+    '<button class="quick-link" onclick="go(\'finance\')"><strong>Ajouter une dépense</strong><small>Mettre à jour les charges</small></button>' +
     '</div></div>';
 
   html += '<div class="card"><h2>Ventes récentes</h2>';
@@ -573,7 +573,7 @@ function dashboardPage() {
 function companiesPage() {
   var html = pageHead("Entreprises",
     "Créez et sélectionnez les entreprises que vous souhaitez gérer.",
-    '<button class="button primary" onclick="showForm(\\'companyForm\\')">+ Ajouter une entreprise</button>');
+    '<button class="button primary" onclick="showForm(\'companyForm\')">+ Ajouter une entreprise</button>');
 
   html += '<div class="card hidden" id="companyForm"><h2>Nouvelle entreprise</h2>' +
     '<form onsubmit="addCompany(event)"><div class="form-grid">' +
@@ -585,7 +585,7 @@ function companiesPage() {
     currencyOptions(state.currency) + '</select></div>' +
     '<div class="field"><label>Pays</label><input name="country" placeholder="Maroc"></div>' +
     '</div><div class="form-actions"><button class="button primary">Créer l’entreprise</button> ' +
-    '<button type="button" class="button" onclick="hideForm(\\'companyForm\\')">Annuler</button></div></form></div>';
+    '<button type="button" class="button" onclick="hideForm(\'companyForm\')">Annuler</button></div></form></div>';
 
   if (!state.companies.length) {
     html += '<div class="card">' + empty("Aucune entreprise. Ajoutez votre première entreprise pour commencer.") + '</div>';
@@ -596,10 +596,10 @@ function companiesPage() {
         '<p class="muted">' + escapeHTML(company.type) + ' · ' +
         escapeHTML(company.currency) + '</p>' +
         (selected ? '<span class="badge">Entreprise active</span>' :
-          '<button class="button primary" onclick="selectCompany(\\'' +
-          company.id + '\\')">Sélectionner</button> ') +
-        ' <button class="button" onclick="deleteCompany(\\'' +
-        company.id + '\\')">Supprimer</button></div>';
+          '<button class="button primary" onclick="selectCompany(\'' +
+          company.id + '\')">Sélectionner</button> ') +
+        ' <button class="button" onclick="deleteCompany(\'' +
+        company.id + '\')">Supprimer</button></div>';
     });
   }
   return html;
@@ -609,7 +609,7 @@ function productsPage() {
   var products = companyRows("products");
   var html = pageHead("Produits et stocks",
     "Gérez vos produits, prestations, prix et quantités.",
-    '<button class="button primary" onclick="showForm(\\'productForm\\')">+ Ajouter un article</button>');
+    '<button class="button primary" onclick="showForm(\'productForm\')">+ Ajouter un article</button>');
 
   html += companyNotice();
   html += '<div class="card hidden" id="productForm"><h2>Nouvel article</h2>' +
@@ -641,7 +641,7 @@ function salesPage() {
   var sales = companyRows("sales").slice().reverse();
   var html = pageHead("Ventes et clients",
     "Enregistrez les ventes de produits et les prestations facturées.",
-    '<button class="button primary" onclick="showForm(\\'saleForm\\')">+ Nouvelle vente</button>');
+    '<button class="button primary" onclick="showForm(\'saleForm\')">+ Nouvelle vente</button>');
 
   html += companyNotice();
   html += '<div class="card hidden" id="saleForm"><h2>Enregistrer une vente</h2>';
@@ -681,7 +681,7 @@ function purchasesPage() {
   var purchases = companyRows("purchases").slice().reverse();
   var html = pageHead("Achats et fournisseurs",
     "Suivez les achats et les sommes dues aux fournisseurs.",
-    '<button class="button primary" onclick="showForm(\\'purchaseForm\\')">+ Nouvel achat</button>');
+    '<button class="button primary" onclick="showForm(\'purchaseForm\')">+ Nouvel achat</button>');
 
   html += companyNotice();
   html += '<div class="card hidden" id="purchaseForm"><h2>Enregistrer un achat</h2>' +
@@ -710,7 +710,7 @@ function financePage() {
   var expenses = companyRows("expenses").slice().reverse();
   var html = pageHead("Trésorerie et finances",
     "Suivez les dépenses et les mouvements d’argent.",
-    '<button class="button primary" onclick="showForm(\\'expenseForm\\')">+ Nouvelle dépense</button>');
+    '<button class="button primary" onclick="showForm(\'expenseForm\')">+ Nouvelle dépense</button>');
 
   html += companyNotice();
   html += '<div class="grid metrics">' +
@@ -937,8 +937,6 @@ window.addSale = function (event) {
 
   var saleCurrency = form.currency.value;
   var saleTotal = convert(product.price * quantity, product.currency);
-  var amountInSaleCurrency = saleTotal /
-    (number(state.rates[saleCurrency]) / (number(state.rates[state.currency]) || 1) || 1);
 
   state.sales.push({
     id: makeId(),
@@ -946,17 +944,20 @@ window.addSale = function (event) {
     productId: product.id,
     name: product.name,
     qty: quantity,
-    total: amountInSaleCurrency,
+    total: saleTotal,
     currency: saleCurrency,
     date: form.date.value,
     paid: form.paid.value === "true"
   });
 
-  if (product.type !== "Service") product.stock -= quantity;
+  if (product.type !== "Service") {
+    product.stock -= quantity;
+  }
 
   saveState();
   render();
-  notify("Vente enregistrée et stock actualisé.");
+  hideForm("saleForm");
+  notify("Vente enregistrée.");
 };
 
 window.addPurchase = function (event) {
@@ -980,6 +981,7 @@ window.addPurchase = function (event) {
 
   saveState();
   render();
+  hideForm("purchaseForm");
   notify("Achat enregistré.");
 };
 
@@ -998,97 +1000,68 @@ window.addExpense = function (event) {
     name: form.name.value.trim(),
     amount: number(form.amount.value),
     currency: form.currency.value,
+  
     date: form.date.value
   });
 
   saveState();
   render();
+  hideForm("expenseForm");
   notify("Dépense enregistrée.");
+};
+
+window.exportBackup = function () {
+  var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+  var dlAnchorElem = document.createElement('a');
+  dlAnchorElem.setAttribute("href", dataStr);
+  dlAnchorElem.setAttribute("download", "momos_business_backup.json");
+  dlAnchorElem.click();
+};
+
+window.importBackup = function (event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      state = JSON.parse(e.target.result);
+      saveState();
+      render();
+      notify("Sauvegarde importée avec succès.");
+    } catch (error) {
+      notify("Fichier de sauvegarde invalide.");
+    }
+  };
+  reader.readAsText(file);
+};
+
+window.exportCSV = function () {
+  var sales = companyRows("sales");
+  if (!sales.length) {
+    notify("Aucune vente à exporter.");
+    return;
+  }
+  var csvContent = "data:text/csv;charset=utf-8,Date;Designation;Quantite;Montant;Devise;Paiement\n";
+  sales.forEach(function (sale) {
+    csvContent += [sale.date, sale.name, sale.qty, sale.total, sale.currency, sale.paid ? "Payée" : "À régler"].join(";") + "\n";
+  });
+  var encodedUri = encodeURI(csvContent);
+  var link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "ventes.csv");
+  link.click();
 };
 
 window.saveSettings = function (event) {
   event.preventDefault();
   var form = event.target;
   state.currency = form.currency.value;
-  state.rates.EUR = Math.max(0.0001, number(form.eur.value));
+  state.rates.EUR = number(form.eur.value);
   saveState();
   render();
   notify("Paramètres enregistrés.");
 };
 
-window.exportBackup = function () {
-  var blob = new Blob([JSON.stringify(state, null, 2)], {
-    type: "application/json"
-  });
-  download(blob, "momos-business-sauvegarde.json");
-};
-
-window.exportCSV = function () {
-  var lines = [["Date", "Désignation", "Quantité", "Montant", "Devise", "Payée"].join(";")];
-
-  companyRows("sales").forEach(function (sale) {
-    lines.push([
-      sale.date,
-      '"' + String(sale.name).replace(/"/g, '""') + '"',
-      sale.qty, sale.total, sale.currency,
-      sale.paid ? "Oui" : "Non"
-    ].join(";"));
-  });
-
-  download(new Blob(["\ufeff" + lines.join("\r\n")], {
-    type: "text/csv;charset=utf-8"
-  }), "ventes-momos-business.csv");
-};
-
-function download(blob, filename) {
-  var link = document.createElement("a");
-  var url = URL.createObjectURL(blob);
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-window.importBackup = function (event) {
-  var file = event.target.files[0];
-  if (!file) return;
-
-  var reader = new FileReader();
-  reader.onload = function () {
-    try {
-      var imported = JSON.parse(reader.result);
-      if (!imported || !Array.isArray(imported.companies) ||
-          !Array.isArray(imported.products)) {
-        throw new Error("invalid");
-      }
-      if (!confirm("Remplacer les données actuelles par cette sauvegarde ?")) return;
-      state = Object.assign({}, defaultState, imported);
-      saveState();
-      render();
-      notify("Sauvegarde importée.");
-    } catch (error) {
-      notify("Le fichier de sauvegarde est invalide.");
-    }
-  };
-  reader.readAsText(file);
-};
-
-document.querySelectorAll(".nav").forEach(function (button) {
-  button.addEventListener("click", function () {
-    go(button.dataset.page);
-  });
-});
-
-window.addEventListener("hashchange", function () {
-  var page = location.hash.replace("#/", "");
-  if (titles[page] && page !== currentPage) {
-    currentPage = page;
-    render();
-  }
-});
-
-var initialPage = location.hash.replace("#/", "");
-if (titles[initialPage]) currentPage = initialPage;
 render();
 
 })();
