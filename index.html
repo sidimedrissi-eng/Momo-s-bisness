@@ -60,6 +60,7 @@ p { line-height: 1.5; color: var(--text); }
 .eyebrow { color: #4bd49b; font-size: 10px; font-weight: bold; letter-spacing: 1.5px; margin-bottom: 8px; }
 .button { padding: 10px 14px; border: 1px solid var(--border); background: #21262d; color: var(--text); border-radius: 8px; }
 .button.primary { background: var(--green); color: white; border-color: var(--green); }
+.button.danger { background: #3c1e1e; color: var(--red); border-color: var(--red); }
 .button:hover { opacity: .88; background: #30363d; }
 .grid { display: grid; gap: 16px; }
 .metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 18px; }
@@ -415,7 +416,7 @@ function companiesPage() {
         '<p style="font-size:13px;margin:8px 0;"><strong>Siège :</strong> ' + escapeHTML(c.originCountry || "—") + '</p>' +
         '<p style="font-size:13px;margin:8px 0 14px;"><strong>Zones :</strong> ' + escapeHTML(c.targetCountries || "—") + '</p>' +
         (sel ? '<span class="badge">Entreprise active</span>' : '<button class="button primary" onclick="selectCompany(\'' + c.id + '\')">Sélectionner</button>') +
-        ' <button class="button" onclick="deleteCompany(\'' + c.id + '\')">Supprimer</button></div>';
+        ' <button class="button danger" onclick="deleteCompany(\'' + c.id + '\')">Supprimer</button></div>';
     });
   }
   return html;
@@ -434,7 +435,7 @@ function productsPage() {
     '<div class="field"><label>Devise</label><select name="currency">' + currencyOptions(state.currency) + '</select></div>' +
     '</div><div class="form-actions"><button class="button primary">Enregistrer l’article</button></div></form></div>';
 
-  html += '<div class="card">' + table(["Article", "Type", "Coût unitaire", "Prix de vente", "Stock restant", "Marge unitaire"], prods.map(function (p) {
+  html += '<div class="card">' + table(["Article", "Type", "Coût unitaire", "Prix de vente", "Stock restant", "Marge unitaire", "Actions"], prods.map(function (p) {
     var stockBadge = p.type === "Service" ? "—" : (p.stock <= 5 ? '<span class="text-red">' + p.stock + ' (Stock faible)</span>' : p.stock);
     return [
       escapeHTML(p.name),
@@ -442,7 +443,8 @@ function productsPage() {
       money(p.cost, p.currency),
       money(p.price, p.currency),
       stockBadge,
-      money(number(p.price) - number(p.cost), p.currency)
+      money(number(p.price) - number(p.cost), p.currency),
+      '<button class="button danger" style="padding:4px 8px;font-size:11px;" onclick="deleteItem(\'products\', \'' + p.id + '\')">🗑️ Supprimer</button>'
     ];
   })) + '</div>';
   return html;
@@ -470,7 +472,7 @@ function salesPage() {
       '<div class="field"><label>Paiement</label><select name="paid"><option value="true">Payée</option><option value="false">À régler</option></select></div>' +
       '</div><div class="form-actions"><button class="button primary">Valider la vente</button></div></form>';
   }
-  html += '</div><div class="card">' + table(["Date", "Désignation", "Client", "Qté", "Montant Total", "Statut", "Facture"], sales.map(function (s) {
+  html += '</div><div class="card">' + table(["Date", "Désignation", "Client", "Qté", "Montant Total", "Statut", "Facture", "Actions"], sales.map(function (s) {
     return [
       escapeHTML(s.date),
       escapeHTML(s.name),
@@ -478,7 +480,8 @@ function salesPage() {
       escapeHTML(s.qty),
       money(s.total, s.currency),
       s.paid ? '<span class="badge">Payée</span>' : '<span class="badge pending">À régler</span>',
-      '<button class="button" style="padding:4px 8px;font-size:11px;" onclick="viewInvoice(\'' + s.id + '\')">📄 Reçu</button>'
+      '<button class="button" style="padding:4px 8px;font-size:11px;" onclick="viewInvoice(\'' + s.id + '\')">📄 Reçu</button>',
+      '<button class="button danger" style="padding:4px 8px;font-size:11px;" onclick="deleteItem(\'sales\', \'' + s.id + '\')">🗑️ Supprimer</button>'
     ];
   })) + '</div>';
   return html;
@@ -500,7 +503,7 @@ function purchasesPage() {
     '<div class="field"><label>Paiement</label><select name="paid"><option value="true">Payé</option><option value="false">À régler</option></select></div>' +
     '</div><div class="form-actions"><button class="button primary">Enregistrer le réapprovisionnement</button></div></form></div>';
 
-  html += '<div class="card">' + table(["Date", "Fournisseur / Produit", "Qté", "Montant total", "Analyse coût / Écart", "Statut"], purchases.map(function (p) {
+  html += '<div class="card">' + table(["Date", "Fournisseur / Produit", "Qté", "Montant total", "Analyse coût / Écart", "Statut", "Actions"], purchases.map(function (p) {
     var diffHtml = "—";
     if (p.costDiff !== undefined) {
       if (p.costDiff > 0) {
@@ -517,7 +520,8 @@ function purchasesPage() {
       escapeHTML(p.qty || 1),
       money(p.total, p.currency),
       diffHtml,
-      p.paid ? '<span class="badge">Payé</span>' : '<span class="badge pending">À régler</span>'
+      p.paid ? '<span class="badge">Payé</span>' : '<span class="badge pending">À régler</span>',
+      '<button class="button danger" style="padding:4px 8px;font-size:11px;" onclick="deleteItem(\'purchases\', \'' + p.id + '\')">🗑️ Supprimer</button>'
     ];
   })) + '</div>';
   return html;
@@ -538,8 +542,13 @@ function financePage() {
     '<div class="field"><label>Devise</label><select name="currency">' + currencyOptions(state.currency) + '</select></div>' +
     '<div class="field"><label>Date</label><input name="date" type="date" value="' + new Date().toISOString().slice(0, 10) + '" required></div>' +
     '</div><div class="form-actions"><button class="button primary">Enregistrer</button></div></form></div>';
-  html += '<div class="card">' + table(["Date", "Dépense", "Montant"], expenses.map(function (e) {
-    return [escapeHTML(e.date), escapeHTML(e.name), money(e.amount, e.currency)];
+  html += '<div class="card">' + table(["Date", "Dépense", "Montant", "Actions"], expenses.map(function (e) {
+    return [
+      escapeHTML(e.date),
+      escapeHTML(e.name),
+      money(e.amount, e.currency),
+      '<button class="button danger" style="padding:4px 8px;font-size:11px;" onclick="deleteItem(\'expenses\', \'' + e.id + '\')">🗑️ Supprimer</button>'
+    ];
   })) + '</div>';
   return html;
 }
@@ -719,6 +728,16 @@ window.deleteCompany = function (id) {
   notify("Supprimée.");
 };
 
+window.deleteItem = function (category, id) {
+  if (!confirm("Voulez-vous vraiment supprimer cet élément ?")) return;
+  if (state[category]) {
+    state[category] = state[category].filter(function (item) { return item.id !== id; });
+    saveState();
+    render();
+    notify("Élément supprimé.");
+  }
+};
+
 window.addProduct = function (e) {
   e.preventDefault();
   var comp = activeCompany();
@@ -799,7 +818,7 @@ window.addPurchase = function (e) {
     id: makeId(),
     companyId: comp.id,
     productId: prodId || null,
-    name: f.name.value.trim() + (prodId ? " (" + (state.products.find(p => p.id === prodId)?.name || "") + ")" : ""),
+    name: f.name.value.trim() + (prodId ? " (" + (state.products.find(function(p){ return p.id === prodId; })?.name || "") + ")" : ""),
     qty: qty,
     unitCost: unitCost,
     total: total,
