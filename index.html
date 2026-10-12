@@ -155,9 +155,12 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 .notice { background: #11261e; color: #4bd49b; padding: 14px; border-radius: 8px; font-size: 13px; margin-bottom: 18px; border: 1px solid #16845b55; }
 .badge { display: inline-block; padding: 5px 8px; border-radius: 20px; background: #11261e; color: #4bd49b; font-size: 10px; }
 .badge.pending { background: #2c220a; color: #e3b341; }
+.badge.completed { background: #1f3833; color: #3fb950; }
 .hidden { display: none !important; }
 .text-green { color: var(--accent-green); font-weight: bold; }
 .text-red { color: var(--red); font-weight: bold; }
+.lesson-box { background: #161b22; border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 12px; font-size: 13px; line-height: 1.6; }
+.lesson-box ul { margin: 8px 0; padding-left: 20px; }
 .bar-chart { display: flex; align-items: end; gap: 12px; height: 190px; padding: 15px 5px 24px; border-bottom: 1px solid var(--border); }
 .bar-column { flex: 1; height: 100%; display: flex; align-items: end; position: relative; }
 .bar { width: 100%; background: var(--green); border-radius: 5px 5px 0 0; min-height: 3px; }
@@ -200,7 +203,7 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
   <button class="nav" data-page="reports" onclick="go('reports')">▥ Analyses et rapports</button>
 
   <div class="nav-label">FORMATION</div>
-  <button class="nav" data-page="academy" onclick="go('academy')">Académie</button>
+  <button class="nav" data-page="academy" onclick="go('academy')">🎓 Académie</button>
 
   <div class="nav-label">CONFIGURATION</div>
   <button class="nav" data-page="settings" onclick="go('settings')">⚙ Paramètres</button>
@@ -241,6 +244,7 @@ var defaultState = {
   purchases: [],
   expenses: [],
   activeCompany: "",
+  completedCourses: [],
   rates: { MAD: 1, EUR: 10.8, USD: 9.9, GBP: 12.5, CAD: 7.2, CHF: 11.2, DZD: 0.074, TND: 3.2 }
 };
 
@@ -463,9 +467,9 @@ function productsPage() {
   html += '<div class="card hidden" id="productForm"><h2>Nouvel article</h2><form onsubmit="addProduct(event)"><div class="form-grid">' +
     '<div class="field"><label>Nom *</label><input name="name" required></div>' +
     '<div class="field"><label>Type</label><select name="type"><option>Produit</option><option>Service</option></select></div>' +
-    '<div class="field"><label>Coût unitaire</label><input name="cost" type="number" step="0.01" value="0"></div>' +
-    '<div class="field"><label>Prix de vente</label><input name="price" type="number" step="0.01" value="0"></div>' +
-    '<div class="field"><label>Stock initial</label><input name="stock" type="number" value="0"></div>' +
+    '<div class="field"><label>Coût unitaire</label><input name="cost" type="number" step="0.01" min="0" value="0"></div>' +
+    '<div class="field"><label>Prix de vente</label><input name="price" type="number" step="0.01" min="0" value="0"></div>' +
+    '<div class="field"><label>Stock initial</label><input name="stock" type="number" min="0" value="0"></div>' +
     '<div class="field"><label>Devise</label><select name="currency">' + currencyOptions(state.currency) + '</select></div>' +
     '</div><div class="form-actions"><button class="button primary">Enregistrer</button></div></form></div>';
 
@@ -487,7 +491,7 @@ function salesPage() {
     html += '<form onsubmit="addSale(event)"><div class="form-grid">' +
       '<div class="field full"><label>Article *</label><select name="productId" required><option value="">Choisir</option>' +
       prods.map(function (p) { return '<option value="' + p.id + '">' + escapeHTML(p.name) + ' — ' + money(p.price, p.currency) + '</option>'; }).join("") + '</select></div>' +
-      '<div class="field"><label>Quantité</label><input name="qty" type="number" value="1" min="1" required></div>' +
+      '<div class="field"><label>Quantité</label><input name="qty" type="number" value="1" min="0" required></div>' +
       '<div class="field"><label>Devise</label><select name="currency">' + currencyOptions(state.currency) + '</select></div>' +
       '<div class="field"><label>Date</label><input name="date" type="date" value="' + new Date().toISOString().slice(0, 10) + '" required></div>' +
       '<div class="field"><label>Paiement</label><select name="paid"><option value="true">Payée</option><option value="false">À régler</option></select></div>' +
@@ -505,7 +509,7 @@ function purchasesPage() {
   html += companyNotice();
   html += '<div class="card hidden" id="purchaseForm"><h2>Nouvel achat</h2><form onsubmit="addPurchase(event)"><div class="form-grid">' +
     '<div class="field"><label>Fournisseur *</label><input name="name" required></div>' +
-    '<div class="field"><label>Montant</label><input name="total" type="number" step="0.01" required></div>' +
+    '<div class="field"><label>Montant</label><input name="total" type="number" step="0.01" min="0" value="0" required></div>' +
     '<div class="field"><label>Devise</label><select name="currency">' + currencyOptions(state.currency) + '</select></div>' +
     '<div class="field"><label>Date</label><input name="date" type="date" value="' + new Date().toISOString().slice(0, 10) + '" required></div>' +
     '<div class="field"><label>Paiement</label><select name="paid"><option value="true">Payé</option><option value="false">À régler</option></select></div>' +
@@ -527,7 +531,7 @@ function financePage() {
     metric("Trésorerie", money(estimatedCash()), "Solde estimé") + '</div>';
   html += '<div class="card hidden" id="expenseForm"><h2>Nouvelle dépense</h2><form onsubmit="addExpense(event)"><div class="form-grid">' +
     '<div class="field"><label>Libellé *</label><input name="name" required></div>' +
-    '<div class="field"><label>Montant</label><input name="amount" type="number" step="0.01" required></div>' +
+    '<div class="field"><label>Montant</label><input name="amount" type="number" step="0.01" min="0" value="0" required></div>' +
     '<div class="field"><label>Devise</label><select name="currency">' + currencyOptions(state.currency) + '</select></div>' +
     '<div class="field"><label>Date</label><input name="date" type="date" value="' + new Date().toISOString().slice(0, 10) + '" required></div>' +
     '</div><div class="form-actions"><button class="button primary">Enregistrer</button></div></form></div>';
@@ -546,8 +550,84 @@ function reportsPage() {
 }
 
 function academyPage() {
-  return pageHead("Académie", "Formations et guides.") + '<div class="card"><h2>Modules à venir</h2><p class="muted">Contenu de formation en cours de développement.</p></div>';
+  var courses = [
+    {
+      id: "c1",
+      title: "1. Fondamentaux Financiers : Chiffre d'affaires vs Trésorerie",
+      desc: "Comprendre la différence clé entre vendre et encaisser de l'argent.",
+      content: "<ul>" +
+        "<li><strong>Chiffre d'Affaires (CA) :</strong> Somme totale de vos ventes facturées, qu'elles soient déjà payées ou non.</li>" +
+        "<li><strong>Trésorerie :</strong> L'argent réellement disponible sur votre compte en banque.</li>" +
+        "<li><strong>Avertissement :</strong> Une entreprise peut être très rentable sur le papier mais faire faillite faute de trésorerie si ses clients payent en retard !</li>" +
+        "</ul>"
+    },
+    {
+      id: "c2",
+      title: "2. Gestion Intelligente des Stocks & Approvisionnements",
+      desc: "Éviter le surstockage qui immobilise votre argent et les ruptures qui font perdre des clients.",
+      content: "<ul>" +
+        "<li><strong>Stock critique :</strong> Définissez un seuil d'alerte pour passer commande avant la rupture.</li>" +
+        "<li><strong>Coût de possession :</strong> Stocker trop de marchandises immobilise du capital précieux.</li>" +
+        "<li><strong>Règle d'or :</strong> Ne vendez jamais en dessous de votre coût unitaire sous peine de vendre à perte.</li>" +
+        "</ul>"
+    },
+    {
+      id: "c3",
+      title: "3. Calcul des Marges & Stratégie de Prix",
+      desc: "Apprenez à calculer correctement votre marge brute.",
+      content: "<ul>" +
+        "<li><strong>Marge Brute =</strong> Prix de vente HT - Coût d'achat HT.</li>" +
+        "<li><strong>Taux de Marge =</strong> (Marge Brute / Coût d'achat) x 100.</li>" +
+        "<li><strong>Conseil :</strong> Intégrez toujours vos frais fixes (loyer, électricité, logiciels) dans votre calcul final.</li>" +
+        "</ul>"
+    },
+    {
+      id: "c4",
+      title: "4. Pilotage & Prise de Décision Stratégique",
+      desc: "Analyser les chiffres clés de votre tableau de bord pour faire grandir votre entreprise.",
+      content: "<ul>" +
+        "<li><strong>Anticipation :</strong> Suivez chaque semaine le total des factures 'À régler' par vos clients.</li>" +
+        "<li><strong>Optimisation :</strong> Éliminez les produits qui génèrent peu de marge et demandent trop de gestion.</li>" +
+        "</ul>"
+    }
+  ];
+
+  if (!state.completedCourses) state.completedCourses = [];
+
+  var html = pageHead("Académie", "Guides pratiques, formations et conseils de gestion d'entreprise.");
+  html += '<div class="notice">Étudiez chaque module puis validez-le pour suivre votre progression.</div>';
+
+  courses.forEach(function (c) {
+    var isDone = state.completedCourses.indexOf(c.id) !== -1;
+    html += '<div class="card"><h2>' + c.title + '</h2>' +
+      '<p class="muted">' + c.desc + '</p>' +
+      '<div class="lesson-box">' + c.content + '</div>' +
+      '<div style="margin-top: 14px;">';
+    if (isDone) {
+      html += '<span class="badge completed">✓ Module terminé</span> ' +
+        '<button class="button" style="font-size:11px;padding:4px 8px;" onclick="toggleCourse(\'' + c.id + '\')">Réinitialiser</button>';
+    } else {
+      html += '<button class="button primary" style="font-size:11px;padding:8px 14px;" onclick="toggleCourse(\'' + c.id + '\')">Marquer comme terminé</button>';
+    }
+    html += '</div></div>';
+  });
+
+  return html;
 }
+
+window.toggleCourse = function (courseId) {
+  if (!state.completedCourses) state.completedCourses = [];
+  var idx = state.completedCourses.indexOf(courseId);
+  if (idx === -1) {
+    state.completedCourses.push(courseId);
+    notify("Module complété !");
+  } else {
+    state.completedCourses.splice(idx, 1);
+    notify("Statut réinitialisé.");
+  }
+  saveState();
+  render();
+};
 
 function settingsPage() {
   return pageHead("Paramètres", "Configuration.") +
