@@ -23,7 +23,7 @@ body {
   color: var(--text);
 }
 button, input, select { font: inherit; }
-button { cursor: pointer; }
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .layout {
   display: flex;
   min-height: 100vh;
@@ -249,7 +249,7 @@ th {
   .sidebar { width: 100%; padding: 14px; }
   .brand { padding-bottom: 12px; }
   .nav-label { margin-top: 12px; }
-  .nav { width: auto; display: inline-block; }
+  .nav { width: auto; display: inline-block; margin-right: 4px; }
   .content { padding: 16px; }
   .topbar { padding: 14px 16px; }
   .page-head { display: block; }
@@ -581,9 +581,10 @@ function companiesPage() {
     '<div class="field"><label>Activité</label><select name="type">' +
     '<option>Commerce et services</option><option>Commerce de produits</option>' +
     '<option>Prestations de services</option></select></div>' +
-    '<div class="field"><label>Devise</label><select name="currency">' +
+    '<div class="field"><label>Devise principale</label><select name="currency">' +
     currencyOptions(state.currency) + '</select></div>' +
-    '<div class="field"><label>Pays</label><input name="country" placeholder="Maroc"></div>' +
+    '<div class="field"><label>Pays d’origine / Siège</label><input name="originCountry" placeholder="ex: Maroc"></div>' +
+    '<div class="field full"><label>Pays & zones d’activité (séparés par des virgules)</label><input name="targetCountries" placeholder="ex: Maroc, France, Espagne, Afrique de l’Ouest"></div>' +
     '</div><div class="form-actions"><button class="button primary">Créer l’entreprise</button> ' +
     '<button type="button" class="button" onclick="hideForm(\'companyForm\')">Annuler</button></div></form></div>';
 
@@ -592,9 +593,13 @@ function companiesPage() {
   } else {
     state.companies.forEach(function (company) {
       var selected = company.id === state.activeCompany;
+      var origin = company.originCountry || company.country || "Non spécifié";
+      var targets = company.targetCountries || "Zone locale";
+
       html += '<div class="card"><h2>' + escapeHTML(company.name) + '</h2>' +
-        '<p class="muted">' + escapeHTML(company.type) + ' · ' +
-        escapeHTML(company.currency) + '</p>' +
+        '<p class="muted">' + escapeHTML(company.type) + ' · Devise: ' + escapeHTML(company.currency) + '</p>' +
+        '<p style="font-size: 13px; margin: 8px 0;"><strong>Siège / Origine :</strong> ' + escapeHTML(origin) + '</p>' +
+        '<p style="font-size: 13px; margin: 8px 0 14px;"><strong>Zones d’activité :</strong> ' + escapeHTML(targets) + '</p>' +
         (selected ? '<span class="badge">Entreprise active</span>' :
           '<button class="button primary" onclick="selectCompany(\'' +
           company.id + '\')">Sélectionner</button> ') +
@@ -811,7 +816,7 @@ function render() {
   document.getElementById("breadcrumb").textContent =
     "Espace de travail / " + titles[currentPage];
 
-  document.querySelectorAll(".nav").forEach(function (button) {
+  document.querySelectorAll(".sidebar .nav").forEach(function (button) {
     button.classList.toggle("active", button.dataset.page === currentPage);
   });
 
@@ -823,6 +828,18 @@ window.go = function (page) {
   render();
   window.scrollTo(0, 0);
 };
+
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".sidebar .nav").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var page = this.getAttribute("data-page");
+      if (page) {
+        go(page);
+      }
+    });
+  });
+  render();
+});
 
 window.showForm = function (id) {
   var element = document.getElementById(id);
@@ -842,7 +859,8 @@ window.addCompany = function (event) {
     name: form.name.value.trim(),
     type: form.type.value,
     currency: form.currency.value,
-    country: form.country.value.trim()
+    originCountry: form.originCountry.value.trim(),
+    targetCountries: form.targetCountries.value.trim()
   };
   if (!company.name) return;
   state.companies.push(company);
@@ -956,7 +974,6 @@ window.addSale = function (event) {
 
   saveState();
   render();
-  hideForm("saleForm");
   notify("Vente enregistrée.");
 };
 
@@ -981,7 +998,6 @@ window.addPurchase = function (event) {
 
   saveState();
   render();
-  hideForm("purchaseForm");
   notify("Achat enregistré.");
 };
 
@@ -1000,13 +1016,11 @@ window.addExpense = function (event) {
     name: form.name.value.trim(),
     amount: number(form.amount.value),
     currency: form.currency.value,
-  
     date: form.date.value
   });
 
   saveState();
   render();
-  hideForm("expenseForm");
   notify("Dépense enregistrée.");
 };
 
@@ -1062,8 +1076,9 @@ window.saveSettings = function (event) {
   notify("Paramètres enregistrés.");
 };
 
-render();
-
+if (document.readyState === "complete" || document.readyState === "interactive") {
+  render();
+}
 })();
 </script>
 </body>
