@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Momo's Business - Terminal Pro Kasper</title>
+<title>Momo's Business</title>
 <style>
 :root {
   --navy: #0d1117;
@@ -72,87 +72,36 @@ p { line-height: 1.5; color: var(--text); }
 .metric-value { font-size: 25px; font-weight: bold; margin: 14px 0 8px; color: white; }
 .metric-note { color: var(--muted); font-size: 11px; }
 
-/* GRAPHIC KASPER / TRADINGVIEW STYLE */
+/* STYLE KASPER INDEX TERMINAL */
 .terminal-layout { display: grid; grid-template-columns: 2.3fr 1fr; gap: 16px; }
 .chart-header-bar {
   display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 12px; flex-wrap: wrap; gap: 10px; font-family: monospace;
+  margin-bottom: 10px; flex-wrap: wrap; gap: 10px; font-family: monospace; background: #131722; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border);
 }
-.ohlc-info { font-size: 12px; color: var(--text); font-weight: bold; }
-.ohlc-info span { margin-right: 12px; }
-.ohlc-val { color: var(--accent-green); }
-.ohlc-val.loss { color: var(--red); }
+.ohlc-info { font-size: 11px; color: var(--text); display: flex; gap: 15px; align-items: center; }
 
 .pro-chart-box {
-  position: relative; height: 380px; padding: 25px 65px 35px 20px;
+  position: relative; height: 380px; padding: 20px 65px 30px 20px;
   background: #131722; border-radius: 8px; border: 1px solid var(--border);
-  display: flex; align-items: flex-end; justify-content: space-between; gap: 8px;
   background-image: 
-    linear-gradient(#2a2e3933 1px, transparent 1px), 
-    linear-gradient(90deg, #2a2e3933 1px, transparent 1px);
-  background-size: 40px 40px;
-  overflow: visible;
+    linear-gradient(#2a2e3922 1px, transparent 1px), 
+    linear-gradient(90deg, #2a2e3922 1px, transparent 1px);
+  background-size: 45px 45px;
+  overflow: hidden;
 }
 
-/* Tooltip positionné directement à côté de la bougie */
-.chart-tooltip {
-  position: absolute;
-  background: rgba(19, 23, 34, 0.95);
-  border: 1px solid #363c4e;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  color: #d1d4dc;
-  pointer-events: none;
-  display: none;
-  z-index: 50;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.8);
-  white-space: nowrap;
-  transform: translate(-50%, -100%);
-  margin-top: -12px;
-}
-
-.candle-col { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; position: relative; z-index: 5; cursor: pointer; }
-.candle-wick { width: 2px; position: absolute; pointer-events: none; }
-.candle-wick.gain { background: var(--accent-green); }
-.candle-wick.loss { background: var(--red); }
-
-.candle-body { width: 55%; max-width: 18px; border-radius: 1px; position: relative; z-index: 5; transition: transform 0.1s; }
-.candle-body:hover { transform: scaleX(1.25); }
-.candle-body.gain { background: var(--accent-green); border: 1px solid #00897b; }
-.candle-body.loss { background: var(--red); border: 1px solid #c62828; }
-.candle-label { position: absolute; bottom: -26px; width: 100%; text-align: center; font-size: 11px; color: var(--muted); font-weight: bold; }
-
-/* Badges Buy / Sell */
-.signal-badge {
-  position: absolute; font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 3px; z-index: 10; left: 50%; transform: translateX(-50%);
-}
-.signal-buy { background: #004d40; color: #26a69a; border: 1px solid #26a69a; bottom: 2px; }
-.signal-sell { background: #4a154b; color: #ef5350; border: 1px solid #ef5350; top: 2px; }
-
-/* Axe Y des prix à droite */
+/* Axe Y des indices à droite (Style Kasper Index 30.00 à 80.00) */
 .price-axis-right {
   position: absolute; right: 0; top: 0; bottom: 0; width: 60px;
   border-left: 1px solid var(--border); background: #131722;
   display: flex; flex-direction: column; justify-content: space-between;
-  align-items: center; padding: 20px 0 35px; font-size: 10px; color: var(--muted);
+  align-items: center; padding: 20px 0 30px; font-size: 10px; color: var(--muted);
   pointer-events: none; z-index: 8; font-family: monospace;
 }
-.price-tag-badge {
-  background: #2962ff; color: white; padding: 2px 4px; border-radius: 2px; font-weight: bold; font-size: 9px;
-}
 
-/* Line & Grid */
-.level-line { position: absolute; left: 0; right: 60px; height: 1px; border-top: 1px dashed; z-index: 2; pointer-events: none; }
-.level-line.resistance { top: 25%; border-color: #f57c00; }
-.level-line.support { bottom: 25%; border-color: #2962ff; }
-.level-tag { font-size: 9px; padding: 1px 4px; border-radius: 2px; font-weight: bold; position: absolute; right: 8px; top: -8px; }
-.level-line.resistance .level-tag { background: #3e2723; color: #ff9800; }
-.level-line.support .level-tag { background: #0d47a1; color: #2962ff; }
+.svg-trend-layer { position: absolute; top: 20px; left: 20px; right: 60px; height: 330px; z-index: 4; pointer-events: none; }
 
-.svg-trend-layer { position: absolute; top: 25px; left: 20px; right: 60px; height: 320px; z-index: 4; pointer-events: none; }
-
-/* Feed Sidebar */
+/* Flux latéral */
 .feed-sidebar { background: #131722; border: 1px solid var(--border); border-radius: 8px; padding: 16px; max-height: 420px; overflow-y: auto; }
 .feed-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 12px; }
 .feed-left { display: flex; align-items: center; gap: 10px; }
@@ -193,7 +142,7 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 .donut-legend { font-size: 11px; color: var(--muted); text-align: left; width: 100%; margin-top: 10px; }
 .donut-legend-item { display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px dashed var(--border); padding-bottom: 3px; }
 
-.toast { position: fixed; bottom: 20px; right: 20px; background: #1f242c; color: white; padding: 14px 18px; border-radius: 9px; z-index: 10; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+.toast { position: fixed; bottom: 20px; right: 20px; background: #1f242c; color: white; padding: 14px 18px; border-radius: 99px; z-index: 100; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 .invoice-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; }
 .invoice-box { background: #ffffff; color: #172536; padding: 28px; border-radius: 12px; width: 90%; max-width: 550px; font-family: Arial, sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
 .invoice-box h2 { color: #14263d; margin-top: 0; border-bottom: 2px solid #16845b; padding-bottom: 8px; }
@@ -251,8 +200,8 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 
 <main>
   <header class="topbar">
-    <strong id="breadcrumb">Espace de travail / Accueil</strong>
-    <small>Terminal Kasper Pro</small>
+    <strong id="breadcrumb">Momo's Business / Accueil</strong>
+    <small>Kasper Index Pro</small>
   </header>
   <div class="content" id="content"></div>
 </main>
@@ -447,17 +396,13 @@ function dashboardPage() {
   var daysSales = [0, 0, 0, 0, 0, 0, 0];
   var daysExpenses = [0, 0, 0, 0, 0, 0, 0];
   var daysCash = [0, 0, 0, 0, 0, 0, 0];
-  var daysBuyCount = [0, 0, 0, 0, 0, 0, 0];
-  var daysSellCount = [0, 0, 0, 0, 0, 0, 0];
 
   companyRows("sales").forEach(function (s) {
     var d = new Date(s.date).getDay();
     daysSales[d] += convert(s.total, s.currency);
-    daysSellCount[d]++;
   });
   companyRows("purchases").forEach(function (p) {
     var d = new Date(p.date).getDay();
-    daysBuyCount[d]++;
     if (p.paid) daysExpenses[d] += convert(p.total, p.currency);
   });
   companyRows("expenses").forEach(function (e) {
@@ -470,74 +415,55 @@ function dashboardPage() {
     daysCash[j] = runningCash;
   }
 
-  var maxVal = Math.max.apply(null, daysSales.concat(daysExpenses).concat([1]));
   var labels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-  
   var minCash = Math.min.apply(null, daysCash);
   var maxCash = Math.max.apply(null, daysCash);
   var cashSpread = (maxCash - minCash) || 1;
 
-  var svgPoints = [];
-  var areaPoints = ["0% 320px"];
+  var line1 = [], line2 = [], line3 = [], line4 = [], mainGreenLine = [];
   for (var i = 0; i < 7; i++) {
     var x = (i / 6) * 100;
-    var yVal = 290 - Math.min(270, Math.max(20, ((daysCash[i] - minCash) / cashSpread) * 250));
-    svgPoints.push(x + "% " + yVal + "px");
-    areaPoints.push(x + "% " + yVal + "px");
-  }
-  areaPoints.push("100% 320px");
+    var baseVal = ((daysCash[i] - minCash) / cashSpread);
+    
+    var y1 = 300 - Math.min(280, Math.max(30, (baseVal * 200 + 40)));
+    var y2 = 300 - Math.min(280, Math.max(30, (baseVal * 220 + 20)));
+    var y3 = 300 - Math.min(280, Math.max(30, (baseVal * 180 + 60)));
+    var y4 = 300 - Math.min(280, Math.max(30, (baseVal * 240 + 10)));
+    var yMain = 300 - Math.min(280, Math.max(30, (baseVal * 210 + 30)));
 
-  var yMaxVal = Math.max(maxCash, 100);
-  var yMinVal = Math.min(minCash, 0);
-  var stepY = (yMaxVal - yMinVal) / 3;
+    line1.push(x + "% " + y1 + "px");
+    line2.push(x + "% " + y2 + "px");
+    line3.push(x + "% " + y3 + "px");
+    line4.push(x + "% " + y4 + "px");
+    mainGreenLine.push(x + "% " + yMain + "px");
+  }
 
   var chart = '<div class="chart-header-bar">' +
-    '<div class="ohlc-info" id="ohlcBar">' +
-    '<span>JOUR: <strong id="ohlcDay" style="color:white;">—</strong></span>' +
-    '<span>O: <strong id="ohlcOpen" class="ohlc-val">—</strong></span>' +
-    '<span>H: <strong id="ohlcHigh" class="ohlc-val">—</strong></span>' +
-    '<span>L: <strong id="ohlcLow" class="ohlc-val">—</strong></span>' +
-    '<span>C: <strong id="ohlcClose" class="ohlc-val">—</strong></span>' +
-    '</div><small style="color:var(--muted)">Survolez une bougie pour les détails OHLC</small></div>';
+    '<div class="ohlc-info"><span>Kasper Index (14, 3)</span></div>' +
+    '<small style="color:var(--muted)">Mode Multi-Oscillateurs Pro</small></div>';
 
-  chart += '<div class="terminal-layout"><div class="pro-chart-box" id="proChartBox">' +
-    '<div id="chartTooltip" class="chart-tooltip"></div>';
+  chart += '<div class="terminal-layout"><div class="pro-chart-box">';
 
-  chart += '<div class="level-line resistance"><span class="level-tag">R : Cible</span></div>';
-  chart += '<div class="level-line support"><span class="level-tag">S : Seuil</span></div>';
-
-  // Axe Y Droite
   chart += '<div class="price-axis-right">' +
-    '<span>' + yMaxVal.toFixed(0) + '</span>' +
-    '<span>' + (yMinVal + stepY * 2).toFixed(0) + '</span>' +
-    '<span class="price-tag-badge">' + daysCash[daysCash.length - 1].toFixed(0) + '</span>' +
-    '<span>' + yMinVal.toFixed(0) + '</span>' +
+    '<span>80.00</span>' +
+    '<span>70.00</span>' +
+    '<span>60.00</span>' +
+    '<span>50.00</span>' +
+    '<span>40.00</span>' +
+    '<span>30.00</span>' +
     '</div>';
 
-  chart += '<svg class="svg-trend-layer" viewBox="0 0 100 320" preserveAspectRatio="none">';
-  chart += '<defs><linearGradient id="cashGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2962ff44"/><stop offset="100%" stop-color="#2962ff00"/></linearGradient></defs>';
-  chart += '<polygon fill="url(#cashGrad)" points="' + areaPoints.join(", ") + '" />';
-  chart += '<polyline fill="none" stroke="#2962ff" stroke-width="2" points="' + svgPoints.join(", ") + '" />';
+  chart += '<svg class="svg-trend-layer" viewBox="0 0 100 330" preserveAspectRatio="none">';
+  chart += '<polyline fill="none" stroke="#8b949e" stroke-width="1" opacity="0.6" points="' + line1.join(", ") + '" />';
+  chart += '<polyline fill="none" stroke="#d29922" stroke-width="1.2" opacity="0.7" points="' + line2.join(", ") + '" />';
+  chart += '<polyline fill="none" stroke="#58a6ff" stroke-width="1.2" opacity="0.7" points="' + line3.join(", ") + '" />';
+  chart += '<polyline fill="none" stroke="#f85149" stroke-width="1" opacity="0.5" points="' + line4.join(", ") + '" />';
+  chart += '<polyline fill="none" stroke="#26a69a" stroke-width="3.5" points="' + mainGreenLine.join(", ") + '" />';
   chart += '</svg>';
 
   for (var i = 0; i < 7; i++) {
-    var isGain = daysSales[i] >= daysExpenses[i];
-    var mainVal = Math.max(daysSales[i], daysExpenses[i]);
-    var hBody = Math.max(6, (Math.abs(daysSales[i] - daysExpenses[i]) / maxVal) * 250);
-    var hWick = Math.max(14, (mainVal / maxVal) * 270);
-    var dayMargin = daysSales[i] - daysExpenses[i];
-    
-    var signalHtml = "";
-    if (daysBuyCount[i] > 0) signalHtml += '<span class="signal-badge signal-buy">B</span>';
-    if (daysSellCount[i] > 0) signalHtml += '<span class="signal-badge signal-sell">S</span>';
-
-    var candleClass = isGain ? 'gain' : 'loss';
-
-    chart += '<div class="candle-col" data-day="' + labels[i] + '" data-open="' + daysExpenses[i].toFixed(2) + '" data-high="' + mainVal.toFixed(2) + '" data-low="0.00" data-close="' + daysSales[i].toFixed(2) + '" data-margin="' + dayMargin.toFixed(2) + '" data-tréso="' + daysCash[i].toFixed(2) + '">' +
-      signalHtml +
-      '<div class="candle-wick ' + candleClass + '" style="height:' + hWick + 'px; bottom: 30px;"></div>' +
-      '<div class="candle-body ' + candleClass + '" style="height:' + hBody + 'px; bottom: ' + (30 + (Math.min(daysSales[i], daysExpenses[i])/maxVal)*230) + 'px;"></div>' +
-      '<div class="candle-label">' + labels[i] + '</div>' +
+    chart += '<div class="candle-col" style="display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;flex:1;position:relative;">' +
+      '<div style="position:absolute;bottom:0;font-size:10px;color:var(--muted);font-family:monospace;">' + labels[i] + '</div>' +
       '</div>';
   }
   chart += '</div>';
@@ -567,7 +493,7 @@ function dashboardPage() {
     metric("Marge brute", comp ? money(margin) : "—", "CA moins coût des articles") +
     metric("À recevoir", comp ? money(unpaid) : "—", "Ventes non payées") + '</div>';
 
-  html += '<div class="card"><h2>Analyse Technique Pro — Terminal Kasper</h2>' + (comp ? chart : empty("Données insuffisantes")) + '</div>';
+  html += '<div class="card"><h2>Analyse Technique Pro — Kasper Index</h2>' + (comp ? chart : empty("Données insuffisantes")) + '</div>';
 
   html += '<div class="card"><h2>Ventes récentes</h2>';
   html += table(["Date", "Type / Désignation", "Client", "Montant", "Statut", "Facture"], sales.map(function (s) {
@@ -1255,63 +1181,9 @@ window.go = function (page) {
       buttons[i].classList.remove("active");
     }
   }
-  document.getElementById("breadcrumb").textContent = "Espace de travail / " + (titles[page] || page);
+  document.getElementById("breadcrumb").textContent = "Momo's Business / " + (titles[page] || page);
   render();
 };
-
-function setupChartInteractivity() {
-  var box = document.getElementById("proChartBox");
-  var tooltip = document.getElementById("chartTooltip");
-  if (!box || !tooltip) return;
-
-  var cols = box.querySelectorAll(".candle-col");
-  cols.forEach(function(col) {
-    col.addEventListener("mouseenter", function(e) {
-      var day = col.getAttribute("data-day");
-      var open = col.getAttribute("data-open");
-      var high = col.getAttribute("data-high");
-      var low = col.getAttribute("data-low");
-      var close = col.getAttribute("data-close");
-      var margin = col.getAttribute("data-margin");
-      var tréso = col.getAttribute("data-tréso");
-
-      // Mise à jour OHLC Bar en haut
-      document.getElementById("ohlcDay").textContent = day;
-      document.getElementById("ohlcOpen").textContent = open;
-      document.getElementById("ohlcHigh").textContent = high;
-      document.getElementById("ohlcLow").textContent = low;
-      
-      var closeEl = document.getElementById("ohlcClose");
-      closeEl.textContent = close;
-      if (Number(close) >= Number(open)) {
-        closeEl.className = "ohlc-val";
-      } else {
-        closeEl.className = "ohlc-val loss";
-      }
-
-      // Mise à jour Tooltip
-      tooltip.innerHTML = '<strong>' + day + '</strong><br>' +
-        'CA / Ventes: <span class="text-green">' + close + '</span><br>' +
-        'Charges: <span class="text-red">' + open + '</span><br>' +
-        'Marge: <strong>' + margin + '</strong><br>' +
-        'Tréso Cumulée: <strong>' + tréso + '</strong>';
-      
-      // Positionnement exact à côté de la bougie
-      var colRect = col.getBoundingClientRect();
-      var boxRect = box.getBoundingClientRect();
-      var leftPos = colRect.left - boxRect.left + (colRect.width / 2);
-      var topPos = colRect.top - boxRect.top + 20;
-
-      tooltip.style.left = leftPos + "px";
-      tooltip.style.top = topPos + "px";
-      tooltip.style.display = "block";
-    });
-
-    col.addEventListener("mouseleave", function() {
-      tooltip.style.display = "none";
-    });
-  });
-}
 
 function render() {
   var contentEl = document.getElementById("content");
@@ -1332,9 +1204,6 @@ function render() {
       '<button class="button danger" onclick="if(confirm(\'Tout effacer ?\')){localStorage.removeItem(\'momosBusiness\');location.reload();}">Réinitialiser toutes les données</button></div>';
   }
   contentEl.innerHTML = html;
-  if (currentPage === "dashboard") {
-    setupChartInteractivity();
-  }
 }
 
 if (!state.activeCompany && state.companies.length > 0) {
