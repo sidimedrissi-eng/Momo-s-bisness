@@ -99,10 +99,17 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 .text-red { color: var(--red); font-weight: bold; }
 .lesson-box { background: #161b22; border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 12px; font-size: 13px; line-height: 1.6; }
 .lesson-box ul { margin: 8px 0; padding-left: 20px; }
-.bar-chart { display: flex; align-items: end; gap: 12px; height: 190px; padding: 15px 5px 24px; border-bottom: 1px solid var(--border); }
-.bar-column { flex: 1; height: 100%; display: flex; align-items: end; position: relative; }
-.bar { width: 100%; background: var(--green); border-radius: 5px 5px 0 0; min-height: 3px; }
-.bar-label { position: absolute; bottom: -22px; width: 100%; text-align: center; font-size: 10px; color: var(--muted); }
+
+/* Styles du Graphique Professionnel */
+.chart-container { position: relative; height: 190px; padding: 15px 5px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.chart-group { flex: 1; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 4px; position: relative; }
+.chart-bar { width: 42%; border-radius: 4px 4px 0 0; min-height: 3px; }
+.chart-bar.sales { background: var(--accent-green); }
+.chart-bar.expenses { background: var(--red); }
+.chart-label { position: absolute; bottom: -22px; width: 100%; text-align: center; font-size: 10px; color: var(--muted); }
+.chart-legend { display: flex; gap: 16px; font-size: 11px; color: var(--muted); margin-bottom: 8px; align-items: center; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
 .toast { position: fixed; bottom: 20px; right: 20px; background: #1f242c; color: white; padding: 14px 18px; border-radius: 9px; z-index: 10; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 .invoice-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; }
 .invoice-box { background: #ffffff; color: #172536; padding: 28px; border-radius: 12px; width: 90%; max-width: 550px; font-family: Arial, sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
@@ -354,17 +361,37 @@ function dashboardPage() {
   var unpaid = rev - paidRevenue();
   var sales = companyRows("sales").slice().reverse().slice(0, 5);
 
-  var bars = [0, 0, 0, 0, 0, 0, 0];
+  // Génération du graphique combiné Gains (Vert) vs Dépenses/Achats (Rouge) par jour de la semaine
+  var daysSales = [0, 0, 0, 0, 0, 0, 0];
+  var daysExpenses = [0, 0, 0, 0, 0, 0, 0];
+
   companyRows("sales").forEach(function (s) {
-    bars[new Date(s.date).getDay()] += convert(s.total, s.currency);
+    daysSales[new Date(s.date).getDay()] += convert(s.total, s.currency);
   });
-  var max = Math.max.apply(null, bars.concat([1]));
-  var labels = ["D", "L", "M", "M", "J", "V", "S"];
-  var chart = '<div class="bar-chart">';
-  bars.forEach(function (v, i) {
-    var h = Math.max(3, v / max * 100);
-    chart += '<div class="bar-column"><div class="bar" style="height:' + h + '%"></div><div class="bar-label">' + labels[i] + '</div></div>';
+  companyRows("expenses").forEach(function (e) {
+    daysExpenses[new Date(e.date).getDay()] += convert(e.amount, e.currency);
   });
+  companyRows("purchases").forEach(function (p) {
+    if (p.paid) daysExpenses[new Date(p.date).getDay()] += convert(p.total, p.currency);
+  });
+
+  var maxVal = Math.max.apply(null, daysSales.concat(daysExpenses).concat([1]));
+  var labels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+  
+  var chart = '<div class="chart-legend">' +
+    '<span><span class="legend-dot" style="background:var(--accent-green)"></span>Gains (Ventes)</span>' +
+    '<span><span class="legend-dot" style="background:var(--red)"></span>Dépenses / Achats</span>' +
+    '</div><div class="chart-container">';
+
+  for (var i = 0; i < 7; i++) {
+    var hSales = Math.max(3, (daysSales[i] / maxVal) * 150);
+    var hExp = Math.max(3, (daysExpenses[i] / maxVal) * 150);
+    chart += '<div class="chart-group">' +
+      '<div class="chart-bar sales" style="height:' + hSales + 'px;" title="Gains: ' + daysSales[i].toFixed(2) + '"></div>' +
+      '<div class="chart-bar expenses" style="height:' + hExp + 'px;" title="Dépenses: ' + daysExpenses[i].toFixed(2) + '"></div>' +
+      '<div class="chart-label">' + labels[i] + '</div>' +
+      '</div>';
+  }
   chart += '</div>';
 
   var html = pageHead("Accueil", "Vue d’ensemble de votre activité.", '<button class="button primary" onclick="go(\'sales\')">+ Nouvelle vente</button>');
@@ -375,7 +402,7 @@ function dashboardPage() {
     metric("Marge brute", comp ? money(margin) : "—", "CA moins coût des articles") +
     metric("À recevoir", comp ? money(unpaid) : "—", "Ventes non payées") + '</div>';
 
-  html += '<div class="grid two-columns"><div class="card"><h2>Activité des ventes</h2>' + (comp ? chart : empty("Données insuffisantes")) + '</div>' +
+  html += '<div class="grid two-columns"><div class="card"><h2>Performance financière (Gains vs Dépenses)</h2>' + (comp ? chart : empty("Données insuffisantes")) + '</div>' +
     '<div class="card"><h2>Accès rapide</h2>' +
     '<button class="quick-link" onclick="go(\'sales\')"><strong>Nouvelle vente</strong><small>Enregistrer une vente</small></button>' +
     '<button class="quick-link" onclick="go(\'products\')"><strong>Ajouter un article</strong><small>Gérer le catalogue</small></button>' +
