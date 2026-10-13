@@ -418,20 +418,27 @@ function dashboardPage() {
   var cashSpread = (maxCash - minCash) || 1;
 
   var svgPoints = [];
-  var areaPoints = ["0% 330px"];
-  for (var i = 0; i < 7; i++) {
-    var x = (i / 6) * 100;
-    var yVal = 300 - Math.min(280, Math.max(20, ((daysCash[i] - minCash) / cashSpread) * 260));
-    svgPoints.push(x + "% " + yVal + "px");
-    areaPoints.push(x + "% " + yVal + "px");
-  }
-  var svgPoints = [];
-  var areaPoints = ["0,330"];
+var areaPoints = ["0,330"];
+var dailyPoints = [];
 
-  for (var i = 0; i < 7; i++) {
-    var x = (i / 6) * 600;
-    var normalized = (daysCash[i] - minCash) / cashSpread;
-    var y = 300 - (normalized * 260);
+for (var i = 0; i < 7; i++) {
+  var x = (i / 6) * 600;
+
+  // Trésorerie cumulée
+  var normalized = (daysCash[i] - minCash) / cashSpread;
+  var y = 300 - (normalized * 260);
+
+  svgPoints.push(x + "," + y);
+  areaPoints.push(x + "," + y);
+
+  // Gain ou perte journalière
+  var dailyValue = daysSales[i] - daysExpenses[i];
+  var dailyY = 165 - (dailyValue / dailyScale) * 140;
+
+  dailyPoints.push(x + "," + dailyY);
+}
+
+areaPoints.push("600,330");
 
     y = Math.max(20, Math.min(300, y));
 
