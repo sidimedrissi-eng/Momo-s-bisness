@@ -563,21 +563,32 @@ function productsPage() {
 function salesPage() {
   var prods = companyRows("products");
   var sales = companyRows("sales").slice().reverse();
-  var html = pageHead("Ventes, Soldes & Acomptes", "Enregistrez vos ventes, acomptes ou soldes avec motif optionnel.", '<button class="button primary" onclick="showForm(\'saleForm\')">+ Nouvelle opération</button>');
+  var html = pageHead("Ventes, Soldes & Acomptes", "Enregistrez vos ventes, acomptes ou soldes (%) avec motif optionnel.", '<button class="button primary" onclick="showForm(\'saleForm\')">+ Nouvelle opération</button>');
   html += companyNotice();
   
   html += '<div class="card hidden" id="saleForm"><h2>Enregistrer une opération</h2><form onsubmit="addSale(event)"><div class="form-grid">' +
     '<div class="field"><label>Type d’opération *</label><select name="saleType" id="saleTypeSelect" onchange="toggleSaleFields()">' +
     '<option value="produit">Vente de produit / service</option>' +
-    '<option value="solde">Solde / Réduction (remise ou ajustement)</option>' +
+    '<option value="solde">Solde / Réduction (Remise en % ou valeur)</option>' +
     '<option value="acompte">Acompte (avance sur commande)</option>' +
     '</select></div>' +
+    
     '<div class="field" id="fieldProduct"><label>Article du catalogue *</label><select name="productId">' +
     prods.map(function (p) { return '<option value="' + p.id + '">' + escapeHTML(p.name) + ' (Stock: ' + p.stock + ') — ' + money(p.price, p.currency) + '</option>'; }).join("") + '</select></div>' +
-    '<div class="field hidden" id="fieldCustomName"><label>Libellé / Désignation *</label><input name="customName" placeholder="ex: Solde facture #12 ou Acompte client X"></div>' +
+    
+    '<div class="field hidden" id="fieldDiscountType"><label>Type de réduction *</label><select name="discountMode" id="discountModeSelect" onchange="toggleSaleFields()">' +
+    '<option value="percent">Pourcentage (%)</option>' +
+    '<option value="fixed">Montant Fixe</option>' +
+    '</select></div>' +
+
+    '<div class="field hidden" id="fieldPercentVal"><label>Pourcentage de solde / réduction (%) *</label><input name="percentVal" type="number" step="0.1" min="0" max="100" placeholder="ex: 10 pour 10%"></div>' +
+
+    '<div class="field hidden" id="fieldCustomName"><label>Libellé / Désignation *</label><input name="customName" placeholder="ex: Remise client ou Acompte commande X"></div>' +
+    
     '<div class="field" id="fieldQty"><label>Quantité</label><input name="qty" type="number" value="1" min="1"></div>' +
-    '<div class="field" id="fieldAmount"><label>Montant total (ou montant du solde / acompte) *</label><input name="customAmount" type="number" step="0.01" value="0"></div>' +
-    '<div class="field full"><label>Motif de régularisation (optionnel)</label><input name="reason" placeholder="ex: Remise commerciale exceptionnelle, avance chantier..."></div>' +
+    '<div class="field hidden" id="fieldAmount"><label>Montant (ou valeur du solde / acompte) *</label><input name="customAmount" type="number" step="0.01" value="0"></div>' +
+    
+    '<div class="field full"><label>Motif de régularisation (optionnel)</label><input name="reason" placeholder="ex: Solde d’été, remise fidélité, avance sur devis..."></div>' +
     '<div class="field"><label>Nom du Client (optionnel)</label><input name="clientName" placeholder="ex: Client Anonyme"></div>' +
     '<div class="field"><label>Devise</label><select name="currency">' + currencyOptions(state.currency) + '</select></div>' +
     '<div class="field"><label>Date</label><input name="date" type="date" value="' + new Date().toISOString().slice(0, 10) + '" required></div>' +
@@ -601,23 +612,39 @@ function salesPage() {
 
 window.toggleSaleFields = function() {
   var type = document.getElementById("saleTypeSelect").value;
+  var discMode = document.getElementById("discountModeSelect") ? document.getElementById("discountModeSelect").value : "percent";
+  
   var fProd = document.getElementById("fieldProduct");
   var fCust = document.getElementById("fieldCustomName");
+  var fDiscType = document.getElementById("fieldDiscountType");
+  var fPercent = document.getElementById("fieldPercentVal");
   var fQty = document.getElementById("fieldQty");
   var fAmt = document.getElementById("fieldAmount");
+
   if (type === "produit") {
     fProd.classList.remove("hidden");
     fCust.classList.add("hidden");
+    fDiscType.classList.add("hidden");
+    fPercent.classList.add("hidden");
     fQty.classList.remove("hidden");
     fAmt.classList.add("hidden");
   } else if (type === "solde") {
-    fProd.classList.add("hidden");
-    fCust.classList.remove("hidden");
-    fQty.classList.add("hidden");
-    fAmt.classList.remove("hidden");
+    fProd.classList.remove("hidden"); // Sélection du produit à solder
+    fCust.classList.add("hidden");
+    fDiscType.classList.remove("hidden");
+    if (discMode === "percent") {
+      fPercent.classList.remove("hidden");
+      fAmt.classList.add("hidden");
+    } else {
+      fPercent.classList.add("hidden");
+      fAmt.classList.remove("hidden");
+    }
+    fQty.classList.remove("hidden");
   } else if (type === "acompte") {
     fProd.classList.add("hidden");
     fCust.classList.remove("hidden");
+    fDiscType.classList.add("hidden");
+    fPercent.classList.add("hidden");
     fQty.classList.add("hidden");
     fAmt.classList.remove("hidden");
   }
@@ -976,11 +1003,10 @@ window.addSale = function (e) {
   var saleName = "";
   var total = 0;
   var productId = "";
-  var qty = 1;
+  var qty = number(form.qty.value) || 1;
 
   if (saleType === "produit") {
     productId = form.productId.value;
-    qty = number(form.qty.value);
     var prod = null;
     for (var i = 0; i < state.products.length; i++) {
       if (state.products[i].id === productId) { prod = state.products[i]; break; }
@@ -996,9 +1022,32 @@ window.addSale = function (e) {
     saleName = prod.name;
     total = number(prod.price) * qty;
   } else if (saleType === "solde") {
-    var customName = form.customName.value.trim() || "Solde / Réduction";
-    saleName = "Solde: " + customName;
-    total = number(form.customAmount.value);
+    productId = form.productId.value;
+    var discountMode = form.discountMode.value;
+    var prod = null;
+    for (var i = 0; i < state.products.length; i++) {
+      if (state.products[i].id === productId) { prod = state.products[i]; break; }
+    }
+    if (!prod) { notify("Veuillez choisir un produit à solder."); return; }
+    
+    if (prod.type === "Produit" && prod.stock < qty) {
+      notify("Stock insuffisant ! Stock actuel : " + prod.stock);
+      return;
+    }
+    if (prod.type === "Produit") {
+      prod.stock -= qty;
+    }
+
+    var originalPrice = number(prod.price) * qty;
+    if (discountMode === "percent") {
+      var pct = number(form.percentVal.value);
+      total = originalPrice * (1 - (pct / 100));
+      saleName = "Solde " + pct + "% : " + prod.name;
+    } else {
+      var amt = number(form.customAmount.value);
+      total = amt;
+      saleName = "Solde prix spécial : " + prod.name;
+    }
   } else if (saleType === "acompte") {
     var customName = form.customName.value.trim() || "Acompte commande";
     saleName = "Acompte: " + customName;
@@ -1127,38 +1176,3 @@ window.go = function (page) {
     } else {
       buttons[i].classList.remove("active");
     }
-  }
-  document.getElementById("breadcrumb").textContent = "Espace de travail / " + (titles[page] || page);
-  render();
-};
-
-function render() {
-  var contentEl = document.getElementById("content");
-  if (!contentEl) return;
-  var html = "";
-  if (currentPage === "dashboard") html = dashboardPage();
-  else if (currentPage === "companies") html = companiesPage();
-  else if (currentPage === "products") html = productsPage();
-  else if (currentPage === "sales") html = salesPage();
-  else if (currentPage === "purchases") html = purchasesPage();
-  else if (currentPage === "finance") html = financePage();
-  else if (currentPage === "reports") html = reportsPage();
-  else if (currentPage === "academy") html = academyPage();
-  else if (currentPage === "settings") {
-    html = pageHead("Paramètres", "Configuration globale de l'application.") +
-      '<div class="card"><h2>Options générales</h2>' +
-      '<p class="muted">Devise de référence, taux de TVA et gestion des données locales.</p>' +
-      '<button class="button danger" onclick="if(confirm(\'Tout effacer ?\')){localStorage.removeItem(\'momosBusiness\');location.reload();}">Réinitialiser toutes les données</button></div>';
-  }
-  contentEl.innerHTML = html;
-}
-
-if (!state.activeCompany && state.companies.length > 0) {
-  state.activeCompany = state.companies[0].id;
-}
-render();
-
-})();
-</script>
-</body>
-</html>
