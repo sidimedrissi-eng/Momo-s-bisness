@@ -9,19 +9,19 @@
   --navy: #0d1117;
   --navy2: #161b22;
   --green: #16845b;
-  --accent-green: #3fb950;
-  --red: #f85149;
+  --accent-green: #26a69a;
+  --red: #ef5350;
   --bg: #05070b;
   --card-bg: #111620;
   --white: #ffffff;
-  --text: #f0f6fc;
-  --muted: #8b949e;
-  --border: #21262d;
+  --text: #d1d4dc;
+  --muted: #787b86;
+  --border: #2a2e39;
 }
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Trebuchet MS", Roboto, Ubuntu, sans-serif;
   background: var(--bg);
   color: var(--text);
 }
@@ -72,72 +72,93 @@ p { line-height: 1.5; color: var(--text); }
 .metric-value { font-size: 25px; font-weight: bold; margin: 14px 0 8px; color: white; }
 .metric-note { color: var(--muted); font-size: 11px; }
 
-/* TERMINAL PRO KASPER */
+/* GRAPHIC KASPER / TRADINGVIEW STYLE */
 .terminal-layout { display: grid; grid-template-columns: 2.3fr 1fr; gap: 16px; }
 .chart-header-bar {
   display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 12px; flex-wrap: wrap; gap: 10px;
+  margin-bottom: 12px; flex-wrap: wrap; gap: 10px; font-family: monospace;
 }
-.chart-legend {
-  display: flex; gap: 18px; font-size: 12px; color: var(--muted); align-items: center;
-}
-.chart-legend-item { display: flex; align-items: center; gap: 6px; }
-.legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-.legend-line { width: 16px; height: 3px; display: inline-block; border-radius: 2px; }
+.ohlc-info { font-size: 12px; color: var(--text); font-weight: bold; }
+.ohlc-info span { margin-right: 12px; }
+.ohlc-val { color: var(--accent-green); }
+.ohlc-val.loss { color: var(--red); }
 
 .pro-chart-box {
-  position: relative; height: 380px; padding: 25px 55px 35px 15px;
-  background: #04060a; border-radius: 8px; border: 1px solid var(--border);
+  position: relative; height: 380px; padding: 25px 65px 35px 20px;
+  background: #131722; border-radius: 8px; border: 1px solid var(--border);
   display: flex; align-items: flex-end; justify-content: space-between; gap: 8px;
-  background-image: linear-gradient(#161b2211 1px, transparent 1px), linear-gradient(90deg, #161b2211 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-.candle-col { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; position: relative; z-index: 2; cursor: pointer; }
-.candle-wick { width: 2px; background: #8b949e; position: absolute; pointer-events: none; }
-.candle-body { width: 60%; max-width: 20px; border-radius: 2px; position: relative; z-index: 2; transition: opacity 0.2s; }
-.candle-body:hover { opacity: 0.8; }
-.candle-body.gain { background: var(--accent-green); border: 1px solid #2ea043; }
-.candle-body.loss { background: var(--red); border: 1px solid #da3633; }
-.candle-label { position: absolute; bottom: -26px; width: 100%; text-align: center; font-size: 10px; color: var(--muted); }
-
-/* Signaux B / S sur les bougies */
-.signal-badge {
-  position: absolute; font-size: 9px; font-weight: bold; padding: 1px 4px; border-radius: 3px; z-index: 5; transform: translateX(-50%);
-}
-.signal-buy { background: #1f3833; color: var(--accent-green); border: 1px solid var(--accent-green); bottom: 4px; }
-.signal-sell { background: #3c1e1e; color: var(--red); border: 1px solid var(--red); top: 4px; }
-
-/* Axe Y des prix à droite (Style TradingView / Kasper) */
-.price-axis-right {
-  position: absolute; right: 8px; top: 25px; bottom: 35px; width: 45px;
-  display: flex; flex-direction: column; justify-content: space-between;
-  align-items: flex-end; font-size: 9px; color: var(--muted); pointer-events: none; z-index: 5;
+  background-image: 
+    linear-gradient(#2a2e3933 1px, transparent 1px), 
+    linear-gradient(90deg, #2a2e3933 1px, transparent 1px);
+  background-size: 40px 40px;
+  overflow: visible;
 }
 
-/* Tooltip Interactive Flottante */
+/* Tooltip positionné directement à côté de la bougie */
 .chart-tooltip {
-  position: absolute; background: #161b22; border: 1px solid var(--border); padding: 8px 12px;
-  border-radius: 6px; font-size: 11px; color: white; pointer-events: none; display: none; z-index: 20;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  position: absolute;
+  background: rgba(19, 23, 34, 0.95);
+  border: 1px solid #363c4e;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: #d1d4dc;
+  pointer-events: none;
+  display: none;
+  z-index: 50;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.8);
+  white-space: nowrap;
+  transform: translate(-50%, -100%);
+  margin-top: -12px;
 }
 
-/* Support & Résistance */
-.level-line { position: absolute; left: 0; right: 55px; height: 1px; border-top: 1px dashed; z-index: 1; display: flex; justify-content: flex-end; pointer-events: none; }
-.level-line.resistance { top: 20%; border-color: #e3b341; }
-.level-line.support { bottom: 20%; border-color: #58a6ff; }
-.level-tag { font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: bold; position: relative; top: -8px; }
-.level-line.resistance .level-tag { background: #2c220a; color: #e3b341; }
-.level-line.support .level-tag { background: #0d1d30; color: #58a6ff; }
+.candle-col { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; position: relative; z-index: 5; cursor: pointer; }
+.candle-wick { width: 2px; position: absolute; pointer-events: none; }
+.candle-wick.gain { background: var(--accent-green); }
+.candle-wick.loss { background: var(--red); }
 
-.svg-trend-layer { position: absolute; top: 25px; left: 15px; right: 55px; height: 320px; z-index: 4; pointer-events: none; }
+.candle-body { width: 55%; max-width: 18px; border-radius: 1px; position: relative; z-index: 5; transition: transform 0.1s; }
+.candle-body:hover { transform: scaleX(1.25); }
+.candle-body.gain { background: var(--accent-green); border: 1px solid #00897b; }
+.candle-body.loss { background: var(--red); border: 1px solid #c62828; }
+.candle-label { position: absolute; bottom: -26px; width: 100%; text-align: center; font-size: 11px; color: var(--muted); font-weight: bold; }
 
-/* Flux latérale */
-.feed-sidebar { background: #080c14; border: 1px solid var(--border); border-radius: 8px; padding: 16px; max-height: 420px; overflow-y: auto; }
+/* Badges Buy / Sell */
+.signal-badge {
+  position: absolute; font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 3px; z-index: 10; left: 50%; transform: translateX(-50%);
+}
+.signal-buy { background: #004d40; color: #26a69a; border: 1px solid #26a69a; bottom: 2px; }
+.signal-sell { background: #4a154b; color: #ef5350; border: 1px solid #ef5350; top: 2px; }
+
+/* Axe Y des prix à droite */
+.price-axis-right {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 60px;
+  border-left: 1px solid var(--border); background: #131722;
+  display: flex; flex-direction: column; justify-content: space-between;
+  align-items: center; padding: 20px 0 35px; font-size: 10px; color: var(--muted);
+  pointer-events: none; z-index: 8; font-family: monospace;
+}
+.price-tag-badge {
+  background: #2962ff; color: white; padding: 2px 4px; border-radius: 2px; font-weight: bold; font-size: 9px;
+}
+
+/* Line & Grid */
+.level-line { position: absolute; left: 0; right: 60px; height: 1px; border-top: 1px dashed; z-index: 2; pointer-events: none; }
+.level-line.resistance { top: 25%; border-color: #f57c00; }
+.level-line.support { bottom: 25%; border-color: #2962ff; }
+.level-tag { font-size: 9px; padding: 1px 4px; border-radius: 2px; font-weight: bold; position: absolute; right: 8px; top: -8px; }
+.level-line.resistance .level-tag { background: #3e2723; color: #ff9800; }
+.level-line.support .level-tag { background: #0d47a1; color: #2962ff; }
+
+.svg-trend-layer { position: absolute; top: 25px; left: 20px; right: 60px; height: 320px; z-index: 4; pointer-events: none; }
+
+/* Feed Sidebar */
+.feed-sidebar { background: #131722; border: 1px solid var(--border); border-radius: 8px; padding: 16px; max-height: 420px; overflow-y: auto; }
 .feed-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 12px; }
 .feed-left { display: flex; align-items: center; gap: 10px; }
-.status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-.status-dot.green { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
-.status-dot.red { background: var(--red); box-shadow: 0 0 8px var(--red); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.status-dot.green { background: var(--accent-green); }
+.status-dot.red { background: var(--red); }
 
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 13px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text); }
@@ -231,14 +252,13 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 <main>
   <header class="topbar">
     <strong id="breadcrumb">Espace de travail / Accueil</strong>
-    <small>Terminal Pro Kasper</small>
+    <small>Terminal Kasper Pro</small>
   </header>
   <div class="content" id="content"></div>
 </main>
 </div>
 
 <div id="toast" class="toast hidden"></div>
-<div id="chartTooltip" class="chart-tooltip"></div>
 
 <div id="invoiceModal" class="invoice-modal hidden">
   <div class="invoice-box" id="invoiceContent"></div>
@@ -467,55 +487,56 @@ function dashboardPage() {
   }
   areaPoints.push("100% 320px");
 
-  // Échelle axe Y droite (4 niveaux)
   var yMaxVal = Math.max(maxCash, 100);
   var yMinVal = Math.min(minCash, 0);
   var stepY = (yMaxVal - yMinVal) / 3;
 
   var chart = '<div class="chart-header-bar">' +
-    '<div class="chart-legend">' +
-    '<div class="chart-legend-item"><span class="legend-dot" style="background:var(--accent-green)"></span><span>Bougies Gains</span></div>' +
-    '<div class="chart-legend-item"><span class="legend-dot" style="background:var(--red)"></span><span>Bougies Pertes</span></div>' +
-    '<div class="chart-legend-item"><span class="legend-line" style="background:#58a6ff;"></span><span>Trésorerie Pro</span></div>' +
-    '</div><small style="color:var(--muted)">Mode Terminal Kasper Pro actif</small></div>';
+    '<div class="ohlc-info" id="ohlcBar">' +
+    '<span>JOUR: <strong id="ohlcDay" style="color:white;">—</strong></span>' +
+    '<span>O: <strong id="ohlcOpen" class="ohlc-val">—</strong></span>' +
+    '<span>H: <strong id="ohlcHigh" class="ohlc-val">—</strong></span>' +
+    '<span>L: <strong id="ohlcLow" class="ohlc-val">—</strong></span>' +
+    '<span>C: <strong id="ohlcClose" class="ohlc-val">—</strong></span>' +
+    '</div><small style="color:var(--muted)">Survolez une bougie pour les détails OHLC</small></div>';
 
-  chart += '<div class="terminal-layout"><div class="pro-chart-box" id="proChartBox">';
+  chart += '<div class="terminal-layout"><div class="pro-chart-box" id="proChartBox">' +
+    '<div id="chartTooltip" class="chart-tooltip"></div>';
 
   chart += '<div class="level-line resistance"><span class="level-tag">R : Cible</span></div>';
   chart += '<div class="level-line support"><span class="level-tag">S : Seuil</span></div>';
 
-  // Axe Y Droite (Prix / Trésorerie)
+  // Axe Y Droite
   chart += '<div class="price-axis-right">' +
     '<span>' + yMaxVal.toFixed(0) + '</span>' +
     '<span>' + (yMinVal + stepY * 2).toFixed(0) + '</span>' +
-    '<span>' + (yMinVal + stepY).toFixed(0) + '</span>' +
+    '<span class="price-tag-badge">' + daysCash[daysCash.length - 1].toFixed(0) + '</span>' +
     '<span>' + yMinVal.toFixed(0) + '</span>' +
     '</div>';
 
   chart += '<svg class="svg-trend-layer" viewBox="0 0 100 320" preserveAspectRatio="none">';
-  // Dégradé de fond pour la courbe de trésorerie (Area Chart Kasper)
-  chart += '<defs><linearGradient id="cashGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#58a6ff33"/><stop offset="100%" stop-color="#58a6ff00"/></linearGradient></defs>';
+  chart += '<defs><linearGradient id="cashGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2962ff44"/><stop offset="100%" stop-color="#2962ff00"/></linearGradient></defs>';
   chart += '<polygon fill="url(#cashGrad)" points="' + areaPoints.join(", ") + '" />';
-  chart += '<polyline fill="none" stroke="#58a6ff" stroke-width="2.5" points="' + svgPoints.join(", ") + '" />';
+  chart += '<polyline fill="none" stroke="#2962ff" stroke-width="2" points="' + svgPoints.join(", ") + '" />';
   chart += '</svg>';
 
   for (var i = 0; i < 7; i++) {
     var isGain = daysSales[i] >= daysExpenses[i];
     var mainVal = Math.max(daysSales[i], daysExpenses[i]);
-    var hBody = Math.max(6, (Math.abs(daysSales[i] - daysExpenses[i]) / maxVal) * 260);
-    var hWick = Math.max(12, (mainVal / maxVal) * 280);
+    var hBody = Math.max(6, (Math.abs(daysSales[i] - daysExpenses[i]) / maxVal) * 250);
+    var hWick = Math.max(14, (mainVal / maxVal) * 270);
     var dayMargin = daysSales[i] - daysExpenses[i];
     
     var signalHtml = "";
     if (daysBuyCount[i] > 0) signalHtml += '<span class="signal-badge signal-buy">B</span>';
     if (daysSellCount[i] > 0) signalHtml += '<span class="signal-badge signal-sell">S</span>';
 
-    var tooltipData = labels[i] + " | CA: " + daysSales[i].toFixed(2) + " | Charges: " + daysExpenses[i].toFixed(2) + " | Tréso: " + daysCash[i].toFixed(2);
+    var candleClass = isGain ? 'gain' : 'loss';
 
-    chart += '<div class="candle-col" data-info="' + tooltipData + '">' +
+    chart += '<div class="candle-col" data-day="' + labels[i] + '" data-open="' + daysExpenses[i].toFixed(2) + '" data-high="' + mainVal.toFixed(2) + '" data-low="0.00" data-close="' + daysSales[i].toFixed(2) + '" data-margin="' + dayMargin.toFixed(2) + '" data-tréso="' + daysCash[i].toFixed(2) + '">' +
       signalHtml +
-      '<div class="candle-wick" style="height:' + hWick + 'px; bottom: 30px;"></div>' +
-      '<div class="candle-body ' + (isGain ? 'gain' : 'loss') + '" style="height:' + hBody + 'px; bottom: ' + (30 + (Math.min(daysSales[i], daysExpenses[i])/maxVal)*240) + 'px;"></div>' +
+      '<div class="candle-wick ' + candleClass + '" style="height:' + hWick + 'px; bottom: 30px;"></div>' +
+      '<div class="candle-body ' + candleClass + '" style="height:' + hBody + 'px; bottom: ' + (30 + (Math.min(daysSales[i], daysExpenses[i])/maxVal)*230) + 'px;"></div>' +
       '<div class="candle-label">' + labels[i] + '</div>' +
       '</div>';
   }
@@ -790,7 +811,7 @@ function reportsPage() {
   var totalS = rev || 1;
   var gradSales = "";
   var currentAngle = 0;
-  var colorsSales = ["#3fb950", "#2ea043", "#58a6ff", "#1f883d", "#33b3ae"];
+  var colorsSales = ["#26a69a", "#2ea043", "#2962ff", "#1f883d", "#33b3ae"];
   var legendSalesHtml = "";
   var idx = 0;
   for (var name in salesByProd) {
@@ -814,7 +835,7 @@ function reportsPage() {
   var totalEx = totalExpenses() || 1;
   var gradExp = "";
   currentAngle = 0;
-  var colorsExp = ["#f85149", "#da3633", "#e3b341", "#b62324", "#db6d28"];
+  var colorsExp = ["#ef5350", "#da3633", "#e3b341", "#b62324", "#db6d28"];
   var legendExpHtml = "";
   idx = 0;
   for (var name in expByCat) {
@@ -834,7 +855,7 @@ function reportsPage() {
   var totalStockVal = productRows.reduce(function(sum, p) { return sum + (number(p.cost) * number(p.stock)); }, 0) || 1;
   var gradProd = "";
   currentAngle = 0;
-  var colorsProd = ["#58a6ff", "#1f6feb", "#388bfd", "#79c0ff", "#1158c7"];
+  var colorsProd = ["#2962ff", "#1f6feb", "#388bfd", "#79c0ff", "#1158c7"];
   var legendProdHtml = "";
   idx = 0;
   productRows.forEach(function(p) {
@@ -1246,17 +1267,46 @@ function setupChartInteractivity() {
   var cols = box.querySelectorAll(".candle-col");
   cols.forEach(function(col) {
     col.addEventListener("mouseenter", function(e) {
-      var info = col.getAttribute("data-info");
-      tooltip.textContent = info;
+      var day = col.getAttribute("data-day");
+      var open = col.getAttribute("data-open");
+      var high = col.getAttribute("data-high");
+      var low = col.getAttribute("data-low");
+      var close = col.getAttribute("data-close");
+      var margin = col.getAttribute("data-margin");
+      var tréso = col.getAttribute("data-tréso");
+
+      // Mise à jour OHLC Bar en haut
+      document.getElementById("ohlcDay").textContent = day;
+      document.getElementById("ohlcOpen").textContent = open;
+      document.getElementById("ohlcHigh").textContent = high;
+      document.getElementById("ohlcLow").textContent = low;
+      
+      var closeEl = document.getElementById("ohlcClose");
+      closeEl.textContent = close;
+      if (Number(close) >= Number(open)) {
+        closeEl.className = "ohlc-val";
+      } else {
+        closeEl.className = "ohlc-val loss";
+      }
+
+      // Mise à jour Tooltip
+      tooltip.innerHTML = '<strong>' + day + '</strong><br>' +
+        'CA / Ventes: <span class="text-green">' + close + '</span><br>' +
+        'Charges: <span class="text-red">' + open + '</span><br>' +
+        'Marge: <strong>' + margin + '</strong><br>' +
+        'Tréso Cumulée: <strong>' + tréso + '</strong>';
+      
+      // Positionnement exact à côté de la bougie
+      var colRect = col.getBoundingClientRect();
+      var boxRect = box.getBoundingClientRect();
+      var leftPos = colRect.left - boxRect.left + (colRect.width / 2);
+      var topPos = colRect.top - boxRect.top + 20;
+
+      tooltip.style.left = leftPos + "px";
+      tooltip.style.top = topPos + "px";
       tooltip.style.display = "block";
     });
-    col.addEventListener("mousemove", function(e) {
-      var rect = box.getBoundingClientRect();
-      var x = e.clientX - rect.left + 15;
-      var y = e.clientY - rect.top - 40;
-      tooltip.style.left = x + "px";
-      tooltip.style.top = y + "px";
-    });
+
     col.addEventListener("mouseleave", function() {
       tooltip.style.display = "none";
     });
