@@ -72,6 +72,7 @@ p { line-height: 1.5; color: var(--text); }
 .metric-value { font-size: 25px; font-weight: bold; margin: 14px 0 8px; color: white; }
 .metric-note { color: var(--muted); font-size: 11px; }
 .two-columns { grid-template-columns: 1.5fr 1fr; }
+.three-columns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .quick-link {
   display: block; text-align: left; width: 100%; background: #161b22;
   border: 1px solid var(--border); border-radius: 9px; padding: 14px; margin: 8px 0; color: var(--text);
@@ -100,7 +101,7 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 .lesson-box { background: #161b22; border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 12px; font-size: 13px; line-height: 1.6; }
 .lesson-box ul { margin: 8px 0; padding-left: 20px; }
 
-/* Styles du Graphique Professionnel */
+/* Graphique en barres (Accueil) */
 .chart-container { position: relative; height: 190px; padding: 15px 5px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .chart-group { flex: 1; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 4px; position: relative; }
 .chart-bar { width: 42%; border-radius: 4px 4px 0 0; min-height: 3px; }
@@ -109,6 +110,19 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 .chart-label { position: absolute; bottom: -22px; width: 100%; text-align: center; font-size: 10px; color: var(--muted); }
 .chart-legend { display: flex; gap: 16px; font-size: 11px; color: var(--muted); margin-bottom: 8px; align-items: center; }
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+/* Style des Camemberts / Donut Pro */
+.donut-card { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.donut-chart {
+  width: 130px; height: 130px; border-radius: 50%;
+  background: conic-gradient(var(--accent-green) 0% 100%);
+  margin: 15px 0; position: relative; display: flex; align-items: center; justify-content: center;
+}
+.donut-chart::after {
+  content: ""; width: 85px; height: 85px; background: var(--card-bg); border-radius: 50%; position: absolute;
+}
+.donut-legend { font-size: 11px; color: var(--muted); text-align: left; width: 100%; margin-top: 10px; }
+.donut-legend-item { display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px dashed var(--border); padding-bottom: 3px; }
 
 .toast { position: fixed; bottom: 20px; right: 20px; background: #1f242c; color: white; padding: 14px 18px; border-radius: 9px; z-index: 10; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 .invoice-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; }
@@ -125,7 +139,7 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 }
 @media(max-width:1000px) {
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .two-columns { grid-template-columns: 1fr; }
+  .two-columns, .three-columns { grid-template-columns: 1fr; }
 }
 @media(max-width:700px) {
   .layout { display: block; }
@@ -361,7 +375,6 @@ function dashboardPage() {
   var unpaid = rev - paidRevenue();
   var sales = companyRows("sales").slice().reverse().slice(0, 5);
 
-  // Génération du graphique combiné Gains (Vert) vs Dépenses/Achats (Rouge) par jour de la semaine
   var daysSales = [0, 0, 0, 0, 0, 0, 0];
   var daysExpenses = [0, 0, 0, 0, 0, 0, 0];
 
@@ -583,12 +596,98 @@ function financePage() {
 function reportsPage() {
   var rev = totalRevenue(), costs = costOfSales(), exp = totalExpenses();
   var vatAmount = rev * (number(state.vatRate) / 100);
-  return pageHead("Analyses et rapports", "Résultats globaux et estimation TVA.", '<button class="button" onclick="exportCSV()">Exporter CSV</button>') +
-    companyNotice() + '<div class="grid metrics">' +
+  
+  // Génération dynamique des données pour les 3 Camemberts (Donuts)
+  var salesRows = companyRows("sales");
+  var expenseRows = companyRows("expenses");
+  var productRows = companyRows("products");
+
+  // 1. Donut Gains par Produit
+  var salesByProd = {};
+  salesRows.forEach(function(s) {
+    salesByProd[s.name] = (salesByProd[s.name] || 0) + convert(s.total, s.currency);
+  });
+  var totalS = rev || 1;
+  var gradSales = "conic-gradient(";
+  var currentAngle = 0;
+  var colorsSales = ["#3fb950", "#2ea043", "#1f883d", "#238636", "#116329"];
+  var legendSalesHtml = "";
+  var idx = 0;
+  for (var name in salesByProd) {
+    var pct = (salesByProd[name] / totalS) * 100;
+    var nextAngle = currentAngle + pct;
+    var col = colorsSales[idx % colorsSales.length];
+    gradSales += col + " " + currentAngle + "% " + nextAngle + "%, ";
+    legendSalesHtml += '<div class="donut-legend-item"><span><span class="legend-dot" style="background:' + col + '"></span>' + escapeHTML(name) + '</span><strong>' + pct.toFixed(1) + '%</strong></div>';
+    currentAngle = nextAngle;
+    idx++;
+  }
+  if (salesRows.length === 0) gradSales += "var(--border) 0% 100%";
+  else gradSales = gradSales.slice(0, -2);
+  gradSales += ")";
+
+  // 2. Donut Dépenses / Charges
+  var expByCat = {};
+  expenseRows.forEach(function(e) {
+    expByCat[e.name] = (expByCat[e.name] || 0) + convert(e.amount, e.currency);
+  });
+  var totalEx = totalExpenses() || 1;
+  var gradExp = "conic-gradient(";
+  currentAngle = 0;
+  var colorsExp = ["#f85149", "#da3633", "#b62324", "#8e1519", "#67060c"];
+  var legendExpHtml = "";
+  idx = 0;
+  for (var name in expByCat) {
+    var pct = (expByCat[name] / totalEx) * 100;
+    var nextAngle = currentAngle + pct;
+    var col = colorsExp[idx % colorsExp.length];
+    gradExp += col + " " + currentAngle + "% " + nextAngle + "%, ";
+    legendExpHtml += '<div class="donut-legend-item"><span><span class="legend-dot" style="background:' + col + '"></span>' + escapeHTML(name) + '</span><strong>' + pct.toFixed(1) + '%</strong></div>';
+    currentAngle = nextAngle;
+    idx++;
+  }
+  if (expenseRows.length === 0) gradExp += "var(--border) 0% 100%";
+  else gradExp = gradExp.slice(0, -2);
+  gradExp += ")";
+
+  // 3. Donut Produits en Stock / Valeur
+  var totalStockVal = productRows.reduce(function(sum, p) { return sum + (number(p.cost) * number(p.stock)); }, 0) || 1;
+  var gradProd = "conic-gradient(";
+  currentAngle = 0;
+  var colorsProd = ["#58a6ff", "#1f6feb", "#388bfd", "#79c0ff", "#1158c7"];
+  var legendProdHtml = "";
+  idx = 0;
+  productRows.forEach(function(p) {
+    var pVal = number(p.cost) * number(p.stock);
+    var pct = (pVal / totalStockVal) * 100;
+    var nextAngle = currentAngle + pct;
+    var col = colorsProd[idx % colorsProd.length];
+    gradProd += col + " " + currentAngle + "% " + nextAngle + "%, ";
+    legendProdHtml += '<div class="donut-legend-item"><span><span class="legend-dot" style="background:' + col + '"></span>' + escapeHTML(p.name) + '</span><strong>' + pct.toFixed(1) + '%</strong></div>';
+    currentAngle = nextAngle;
+    idx++;
+  });
+  if (productRows.length === 0) gradProd += "var(--border) 0% 100%";
+  else gradProd = gradProd.slice(0, -2);
+  gradProd += ")";
+
+  var html = pageHead("Analyses et rapports", "Résultats globaux, estimation TVA et répartition analytique.", '<button class="button" onclick="exportCSV()">Exporter CSV</button>');
+  html += companyNotice();
+  
+  html += '<div class="grid metrics">' +
     metric("Chiffre d’affaires HT", money(rev), "Total HT") +
     metric("TVA estimée (" + state.vatRate + "%)", money(vatAmount), "TVA collectée") +
     metric("Marge brute", money(rev - costs), "Brut") +
     metric("Net indicatif", money(rev - costs - exp), "Après charges") + '</div>';
+
+  html += '<h2>Répartition Analytique (Camemberts / Donuts)</h2>';
+  html += '<div class="grid three-columns">' +
+    '<div class="card donut-card"><h2>Répartition des Gains</h2><div class="donut-chart" style="background:' + gradSales + ';"></div><div class="donut-legend">' + (salesRows.length ? legendSalesHtml : empty("Aucune vente")) + '</div></div>' +
+    '<div class="card donut-card"><h2>Répartition des Dépenses</h2><div class="donut-chart" style="background:' + gradExp + ';"></div><div class="donut-legend">' + (expenseRows.length ? legendExpHtml : empty("Aucune dépense")) + '</div></div>' +
+    '<div class="card donut-card"><h2>Valeur du Stock par Article</h2><div class="donut-chart" style="background:' + gradProd + ';"></div><div class="donut-legend">' + (productRows.length ? legendProdHtml : empty("Aucun produit")) + '</div></div>' +
+    '</div>';
+
+  return html;
 }
 
 function academyPage() {
