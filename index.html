@@ -98,7 +98,7 @@ p { line-height: 1.5; color: var(--text); }
   pointer-events: none; z-index: 8; font-family: monospace;
 }
 
-.svg-trend-layer { position: absolute; top: 20px; left: 20px; right: 60px; height: 330px; z-index: 4; pointer-events: none; }
+.svg-trend-layer {   position: absolute;   top: 20px;   left: 20px;   right: 60px;   width: calc(100% - 80px);   height: 330px;   z-index: 4;   pointer-events: none;   overflow: visible; } { position: absolute; top: 20px; left: 20px; right: 60px; height: 330px; z-index: 4; pointer-events: none; }
 
 .feed-sidebar { background: #131722; border: 1px solid var(--border); border-radius: 8px; padding: 16px; max-height: 420px; overflow-y: auto; }
 .feed-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 12px; }
@@ -425,7 +425,21 @@ function dashboardPage() {
     svgPoints.push(x + "% " + yVal + "px");
     areaPoints.push(x + "% " + yVal + "px");
   }
-  areaPoints.push("100% 330px");
+  var svgPoints = [];
+  var areaPoints = ["0,330"];
+
+  for (var i = 0; i < 7; i++) {
+    var x = (i / 6) * 600;
+    var normalized = (daysCash[i] - minCash) / cashSpread;
+    var y = 300 - (normalized * 260);
+
+    y = Math.max(20, Math.min(300, y));
+
+    svgPoints.push(x.toFixed(2) + "," + y.toFixed(2));
+    areaPoints.push(x.toFixed(2) + "," + y.toFixed(2));
+  }
+
+  areaPoints.push("600,330");
 
   var yMaxVal = Math.max(maxCash, 100);
   var yMinVal = Math.min(minCash, 0);
@@ -444,7 +458,7 @@ function dashboardPage() {
     '<span>' + yMinVal.toFixed(0) + '</span>' +
     '</div>';
 
-  chart += '<svg class="svg-trend-layer" viewBox="0 0 100 330" preserveAspectRatio="none">';
+  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none">';
   chart += '<defs><linearGradient id="cashGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#16845b44"/><stop offset="100%" stop-color="#16845b00"/></linearGradient></defs>';
   chart += '<polygon fill="url(#cashGrad)" points="' + areaPoints.join(", ") + '" />';
   chart += '<polyline fill="none" stroke="var(--accent-green)" stroke-width="2.5" points="' + svgPoints.join(", ") + '" />';
