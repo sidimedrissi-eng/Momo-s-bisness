@@ -72,13 +72,13 @@ p { line-height: 1.5; color: var(--text); }
 .metric-value { font-size: 25px; font-weight: bold; margin: 14px 0 8px; color: white; }
 .metric-note { color: var(--muted); font-size: 11px; }
 
-/* STYLE KASPER INDEX TERMINAL */
+/* TERMINAL MOMO'S BUSINESS */
 .terminal-layout { display: grid; grid-template-columns: 2.3fr 1fr; gap: 16px; }
 .chart-header-bar {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 10px; flex-wrap: wrap; gap: 10px; font-family: monospace; background: #131722; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border);
 }
-.ohlc-info { font-size: 11px; color: var(--text); display: flex; gap: 15px; align-items: center; }
+.ohlc-info { font-size: 11px; color: var(--text); display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
 
 .pro-chart-box {
   position: relative; height: 380px; padding: 20px 65px 30px 20px;
@@ -90,7 +90,6 @@ p { line-height: 1.5; color: var(--text); }
   overflow: hidden;
 }
 
-/* Axe Y des indices à droite (Style Kasper Index 30.00 à 80.00) */
 .price-axis-right {
   position: absolute; right: 0; top: 0; bottom: 0; width: 60px;
   border-left: 1px solid var(--border); background: #131722;
@@ -101,7 +100,6 @@ p { line-height: 1.5; color: var(--text); }
 
 .svg-trend-layer { position: absolute; top: 20px; left: 20px; right: 60px; height: 330px; z-index: 4; pointer-events: none; }
 
-/* Flux latéral */
 .feed-sidebar { background: #131722; border: 1px solid var(--border); border-radius: 8px; padding: 16px; max-height: 420px; overflow-y: auto; }
 .feed-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 12px; }
 .feed-left { display: flex; align-items: center; gap: 10px; }
@@ -130,7 +128,6 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 .lesson-box { background: #161b22; border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 12px; font-size: 13px; line-height: 1.6; }
 .lesson-box ul { margin: 8px 0; padding-left: 20px; }
 
-/* Donuts */
 .donut-card { display: flex; flex-direction: column; align-items: center; text-align: center; }
 .donut-chart {
   width: 130px; height: 130px; border-radius: 50%;
@@ -201,7 +198,7 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 <main>
   <header class="topbar">
     <strong id="breadcrumb">Momo's Business / Accueil</strong>
-    <small>Kasper Index Pro</small>
+    <small>Terminal Financier Pro</small>
   </header>
   <div class="content" id="content"></div>
 </main>
@@ -420,49 +417,41 @@ function dashboardPage() {
   var maxCash = Math.max.apply(null, daysCash);
   var cashSpread = (maxCash - minCash) || 1;
 
-  var line1 = [], line2 = [], line3 = [], line4 = [], mainGreenLine = [];
+  var svgPoints = [];
+  var areaPoints = ["0% 330px"];
   for (var i = 0; i < 7; i++) {
     var x = (i / 6) * 100;
-    var baseVal = ((daysCash[i] - minCash) / cashSpread);
-    
-    var y1 = 300 - Math.min(280, Math.max(30, (baseVal * 200 + 40)));
-    var y2 = 300 - Math.min(280, Math.max(30, (baseVal * 220 + 20)));
-    var y3 = 300 - Math.min(280, Math.max(30, (baseVal * 180 + 60)));
-    var y4 = 300 - Math.min(280, Math.max(30, (baseVal * 240 + 10)));
-    var yMain = 300 - Math.min(280, Math.max(30, (baseVal * 210 + 30)));
-
-    line1.push(x + "% " + y1 + "px");
-    line2.push(x + "% " + y2 + "px");
-    line3.push(x + "% " + y3 + "px");
-    line4.push(x + "% " + y4 + "px");
-    mainGreenLine.push(x + "% " + yMain + "px");
+    var yVal = 300 - Math.min(280, Math.max(20, ((daysCash[i] - minCash) / cashSpread) * 260));
+    svgPoints.push(x + "% " + yVal + "px");
+    areaPoints.push(x + "% " + yVal + "px");
   }
+  areaPoints.push("100% 330px");
+
+  var yMaxVal = Math.max(maxCash, 100);
+  var yMinVal = Math.min(minCash, 0);
+  var stepY = (yMaxVal - yMinVal) / 3;
 
   var chart = '<div class="chart-header-bar">' +
-    '<div class="ohlc-info"><span>Kasper Index (14, 3)</span></div>' +
-    '<small style="color:var(--muted)">Mode Multi-Oscillateurs Pro</small></div>';
+    '<div class="ohlc-info" id="ohlcBarInfo"><span>Trésorerie Momo\'s Business — <i>Survolez un jour pour voir les détails</i></span></div>' +
+    '<small style="color:var(--muted)">Terminal Pro</small></div>';
 
-  chart += '<div class="terminal-layout"><div class="pro-chart-box">';
+  chart += '<div class="terminal-layout"><div class="pro-chart-box" id="proChartBox">';
 
   chart += '<div class="price-axis-right">' +
-    '<span>80.00</span>' +
-    '<span>70.00</span>' +
-    '<span>60.00</span>' +
-    '<span>50.00</span>' +
-    '<span>40.00</span>' +
-    '<span>30.00</span>' +
+    '<span>' + yMaxVal.toFixed(0) + '</span>' +
+    '<span>' + (yMinVal + stepY * 2).toFixed(0) + '</span>' +
+    '<span style="background:var(--green);color:white;padding:2px 4px;border-radius:3px;">' + daysCash[daysCash.length - 1].toFixed(0) + '</span>' +
+    '<span>' + yMinVal.toFixed(0) + '</span>' +
     '</div>';
 
   chart += '<svg class="svg-trend-layer" viewBox="0 0 100 330" preserveAspectRatio="none">';
-  chart += '<polyline fill="none" stroke="#8b949e" stroke-width="1" opacity="0.6" points="' + line1.join(", ") + '" />';
-  chart += '<polyline fill="none" stroke="#d29922" stroke-width="1.2" opacity="0.7" points="' + line2.join(", ") + '" />';
-  chart += '<polyline fill="none" stroke="#58a6ff" stroke-width="1.2" opacity="0.7" points="' + line3.join(", ") + '" />';
-  chart += '<polyline fill="none" stroke="#f85149" stroke-width="1" opacity="0.5" points="' + line4.join(", ") + '" />';
-  chart += '<polyline fill="none" stroke="#26a69a" stroke-width="3.5" points="' + mainGreenLine.join(", ") + '" />';
+  chart += '<defs><linearGradient id="cashGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#16845b44"/><stop offset="100%" stop-color="#16845b00"/></linearGradient></defs>';
+  chart += '<polygon fill="url(#cashGrad)" points="' + areaPoints.join(", ") + '" />';
+  chart += '<polyline fill="none" stroke="var(--accent-green)" stroke-width="2.5" points="' + svgPoints.join(", ") + '" />';
   chart += '</svg>';
 
   for (var i = 0; i < 7; i++) {
-    chart += '<div class="candle-col" style="display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;flex:1;position:relative;">' +
+    chart += '<div class="candle-col" data-day="' + labels[i] + '" data-sale="' + daysSales[i].toFixed(2) + '" data-exp="' + daysExpenses[i].toFixed(2) + '" data-cash="' + daysCash[i].toFixed(2) + '" style="display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;flex:1;position:relative;cursor:pointer;">' +
       '<div style="position:absolute;bottom:0;font-size:10px;color:var(--muted);font-family:monospace;">' + labels[i] + '</div>' +
       '</div>';
   }
@@ -474,7 +463,7 @@ function dashboardPage() {
   companyRows("purchases").forEach(function(p) { allTransactions.push({date: p.date, name: "Achat: " + p.name, amount: -convert(p.total, p.currency), type: "loss"}); });
   allTransactions.sort(function(a,b) { return new Date(b.date) - new Date(a.date); });
 
-  chart += '<div class="feed-sidebar"><strong>Terminal de Flux</strong><p class="muted" style="margin:4px 0 10px;font-size:11px;">Mouvements récents</p>';
+  chart += '<div class="feed-sidebar"><strong>Flux Momo\'s Business</strong><p class="muted" style="margin:4px 0 10px;font-size:11px;">Mouvements récents</p>';
   if (allTransactions.length === 0) {
     chart += empty("Aucun flux récent.");
   } else {
@@ -493,7 +482,7 @@ function dashboardPage() {
     metric("Marge brute", comp ? money(margin) : "—", "CA moins coût des articles") +
     metric("À recevoir", comp ? money(unpaid) : "—", "Ventes non payées") + '</div>';
 
-  html += '<div class="card"><h2>Analyse Technique Pro — Kasper Index</h2>' + (comp ? chart : empty("Données insuffisantes")) + '</div>';
+  html += '<div class="card"><h2>Évolution de la Trésorerie — Momo\'s Business</h2>' + (comp ? chart : empty("Données insuffisantes")) + '</div>';
 
   html += '<div class="card"><h2>Ventes récentes</h2>';
   html += table(["Date", "Type / Désignation", "Client", "Montant", "Statut", "Facture"], sales.map(function (s) {
@@ -728,7 +717,6 @@ function reportsPage() {
   var expenseRows = companyRows("expenses");
   var productRows = companyRows("products");
 
-  // 1. Donut Gains
   var salesByProd = {};
   salesRows.forEach(function(s) {
     var key = s.name.startsWith("Solde") ? "Soldes / Réductions" : (s.name.startsWith("Acompte") ? "Acomptes" : s.name);
@@ -753,7 +741,6 @@ function reportsPage() {
   if (salesRows.length === 0) gradSales = "var(--border) 0% 100%";
   else gradSales = "conic-gradient(" + gradSales.slice(0, -2) + ")";
 
-  // 2. Donut Dépenses
   var expByCat = {};
   expenseRows.forEach(function(e) {
     expByCat[e.name] = (expByCat[e.name] || 0) + convert(e.amount, e.currency);
@@ -777,7 +764,6 @@ function reportsPage() {
   if (expenseRows.length === 0) gradExp = "var(--border) 0% 100%";
   else gradExp = "conic-gradient(" + gradExp.slice(0, -2) + ")";
 
-  // 3. Donut Stock
   var totalStockVal = productRows.reduce(function(sum, p) { return sum + (number(p.cost) * number(p.stock)); }, 0) || 1;
   var gradProd = "";
   currentAngle = 0;
@@ -1185,6 +1171,32 @@ window.go = function (page) {
   render();
 };
 
+function setupChartInteractivity() {
+  var box = document.getElementById("proChartBox");
+  var infoBar = document.getElementById("ohlcBarInfo");
+  if (!box || !infoBar) return;
+
+  var cols = box.querySelectorAll(".candle-col");
+  cols.forEach(function(col) {
+    col.addEventListener("mouseenter", function() {
+      var day = col.getAttribute("data-day");
+      var sale = col.getAttribute("data-sale");
+      var exp = col.getAttribute("data-exp");
+      var cash = col.getAttribute("data-cash");
+
+      infoBar.innerHTML = 
+        '<span>Jour: <strong style="color:white;">' + day + '</strong></span>' +
+        '<span>Ventes: <strong class="text-green">' + sale + '</strong></span>' +
+        '<span>Dépenses: <strong class="text-red">' + exp + '</strong></span>' +
+        '<span>Tréso: <strong style="color:white;">' + cash + '</strong></span>';
+    });
+
+    col.addEventListener("mouseleave", function() {
+      infoBar.innerHTML = '<span>Trésorerie Momo\'s Business — <i>Survolez un jour pour voir les détails</i></span>';
+    });
+  });
+}
+
 function render() {
   var contentEl = document.getElementById("content");
   if (!contentEl) return;
@@ -1204,6 +1216,9 @@ function render() {
       '<button class="button danger" onclick="if(confirm(\'Tout effacer ?\')){localStorage.removeItem(\'momosBusiness\');location.reload();}">Réinitialiser toutes les données</button></div>';
   }
   contentEl.innerHTML = html;
+  if (currentPage === "dashboard") {
+    setupChartInteractivity();
+  }
 }
 
 if (!state.activeCompany && state.companies.length > 0) {
