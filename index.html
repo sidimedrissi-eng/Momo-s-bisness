@@ -72,7 +72,7 @@ p { line-height: 1.5; color: var(--text); }
 .metric-value { font-size: 25px; font-weight: bold; margin: 14px 0 8px; color: white; }
 .metric-note { color: var(--muted); font-size: 11px; }
 
-/* LAYOUT STYLE TERMINAL PRO (Graphique + Bande latérale) */
+/* TERMINAL PRO */
 .terminal-layout { display: grid; grid-template-columns: 2.3fr 1fr; gap: 16px; }
 .pro-chart-box {
   position: relative; height: 380px; padding: 25px 15px 35px;
@@ -81,28 +81,27 @@ p { line-height: 1.5; color: var(--text); }
   background-image: linear-gradient(#161b2211 1px, transparent 1px), linear-gradient(90deg, #161b2211 1px, transparent 1px);
   background-size: 20px 20px;
 }
-.candle-col { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; position: relative; z-index: 2; }
-.candle-wick { width: 2px; background: #8b949e; position: absolute; }
-.candle-body { width: 60%; max-width: 20px; border-radius: 2px; position: relative; z-index: 2; }
+.candle-col { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; position: relative; z-index: 2; cursor: pointer; }
+.candle-wick { width: 2px; background: #8b949e; position: absolute; pointer-events: none; }
+.candle-body { width: 60%; max-width: 20px; border-radius: 2px; position: relative; z-index: 2; transition: opacity 0.2s; }
+.candle-body:hover { opacity: 0.8; }
 .candle-body.gain { background: var(--accent-green); border: 1px solid #2ea043; }
 .candle-body.loss { background: var(--red); border: 1px solid #da3633; }
 .candle-label { position: absolute; bottom: -26px; width: 100%; text-align: center; font-size: 10px; color: var(--muted); }
 
-/* Lignes de Support (S) & Résistance (R) */
-.level-line { position: absolute; left: 0; right: 0; height: 1px; border-top: 1px dashed; z-index: 1; display: flex; justify-content: flex-end; }
+/* Support & Résistance */
+.level-line { position: absolute; left: 0; right: 0; height: 1px; border-top: 1px dashed; z-index: 1; display: flex; justify-content: flex-end; pointer-events: none; }
 .level-line.resistance { top: 20%; border-color: #e3b341; }
 .level-line.support { bottom: 20%; border-color: #58a6ff; }
 .level-tag { font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: bold; position: relative; top: -8px; }
 .level-line.resistance .level-tag { background: #2c220a; color: #e3b341; }
 .level-line.support .level-tag { background: #0d1d30; color: #58a6ff; }
 
-/* Lignes d'événements verticaux */
-.event-line-v { position: absolute; top: 0; bottom: 0; width: 1px; background: #e3b34166; z-index: 3; }
+.event-line-v { position: absolute; top: 0; bottom: 0; width: 1px; background: #e3b34166; z-index: 3; pointer-events: none; }
 .event-tag-v { position: absolute; top: 6px; font-size: 9px; background: #2c220a; color: #e3b341; padding: 2px 5px; border-radius: 3px; transform: translateX(-50%); white-space: nowrap; border: 1px solid #e3b341aa; z-index: 4; }
-
 .svg-trend-layer { position: absolute; top: 25px; left: 15px; right: 15px; height: 320px; z-index: 4; pointer-events: none; }
 
-/* Bande latérale de flux pro */
+/* Flux latérale */
 .feed-sidebar { background: #080c14; border: 1px solid var(--border); border-radius: 8px; padding: 16px; max-height: 420px; overflow-y: auto; }
 .feed-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 12px; }
 .feed-left { display: flex; align-items: center; gap: 10px; }
@@ -139,11 +138,10 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 .lesson-box { background: #161b22; border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 12px; font-size: 13px; line-height: 1.6; }
 .lesson-box ul { margin: 8px 0; padding-left: 20px; }
 
-/* Camemberts / Donuts Pro */
+/* Donuts */
 .donut-card { display: flex; flex-direction: column; align-items: center; text-align: center; }
 .donut-chart {
   width: 130px; height: 130px; border-radius: 50%;
-  background: conic-gradient(var(--accent-green) 0% 100%);
   margin: 15px 0; position: relative; display: flex; align-items: center; justify-content: center;
 }
 .donut-chart::after {
@@ -426,7 +424,6 @@ function dashboardPage() {
   var maxVal = Math.max.apply(null, daysSales.concat(daysExpenses).concat([1]));
   var labels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
   
-  // Tracé SVG de la courbe de trésorerie nette
   var svgPoints = [];
   for (var i = 0; i < 7; i++) {
     var x = (i / 6) * 100;
@@ -439,38 +436,35 @@ function dashboardPage() {
     '<span><span class="legend-dot" style="background:var(--accent-green)"></span>Bougies Gains</span>' +
     '<span><span class="legend-dot" style="background:var(--red)"></span>Bougies Pertes</span>' +
     '<span><span class="legend-line" style="background:#58a6ff;"></span>Moyenne Trésorerie</span>' +
-    '</div><small style="color:var(--muted)">Terminal Financier ⌁ Vue Trading</small></div>';
+    '</div><small style="color:var(--muted)">Passez la souris sur une bougie pour les détails</small></div>';
 
   chart += '<div class="terminal-layout"><div class="pro-chart-box">';
 
-  // Lignes de Support & Résistance
   chart += '<div class="level-line resistance"><span class="level-tag">R : Cible CA</span></div>';
   chart += '<div class="level-line support"><span class="level-tag">S : Seuil Critique</span></div>';
-
-  // Ligne d'événement vertical
   chart += '<div class="event-line-v" style="left: 50%;"></div><div class="event-tag-v" style="left: 50%;">⚡ Vente / Stock</div>';
 
-  // Couche SVG pour la courbe de tendance
   chart += '<svg class="svg-trend-layer" viewBox="0 0 100 320" preserveAspectRatio="none">';
   chart += '<polyline fill="none" stroke="#58a6ff" stroke-width="2.5" points="' + svgPoints.join(", ") + '" />';
   chart += '</svg>';
 
-  // Bougies Japonaises (Chandeliers)
+  // Bougies avec info-bulle détaillée au survol (CA, Charges, Marge)
   for (var i = 0; i < 7; i++) {
     var isGain = daysSales[i] >= daysExpenses[i];
     var mainVal = Math.max(daysSales[i], daysExpenses[i]);
     var hBody = Math.max(6, (Math.abs(daysSales[i] - daysExpenses[i]) / maxVal) * 260);
     var hWick = Math.max(12, (mainVal / maxVal) * 280);
+    var dayMargin = daysSales[i] - daysExpenses[i];
+    var tooltipText = labels[i] + " — CA: " + daysSales[i].toFixed(2) + " | Charges: " + daysExpenses[i].toFixed(2) + " | Marge/Net: " + dayMargin.toFixed(2);
 
-    chart += '<div class="candle-col">' +
+    chart += '<div class="candle-col" title="' + tooltipText + '">' +
       '<div class="candle-wick" style="height:' + hWick + 'px; bottom: 30px;"></div>' +
-      '<div class="candle-body ' + (isGain ? 'gain' : 'loss') + '" style="height:' + hBody + 'px; bottom: ' + (30 + (Math.min(daysSales[i], daysExpenses[i])/maxVal)*240) + 'px;" title="' + labels[i] + ' - Gains: ' + daysSales[i] + ' / Pertes: ' + daysExpenses[i] + '"></div>' +
+      '<div class="candle-body ' + (isGain ? 'gain' : 'loss') + '" style="height:' + hBody + 'px; bottom: ' + (30 + (Math.min(daysSales[i], daysExpenses[i])/maxVal)*240) + 'px;"></div>' +
       '<div class="candle-label">' + labels[i] + '</div>' +
       '</div>';
   }
   chart += '</div>';
 
-  // Bande latérale droite de flux avec points verts/rouges
   var allTransactions = [];
   companyRows("sales").forEach(function(s) { allTransactions.push({date: s.date, name: "Vente: " + s.name, amount: convert(s.total, s.currency), type: "gain"}); });
   companyRows("expenses").forEach(function(e) { allTransactions.push({date: e.date, name: "Dépense: " + e.name, amount: -convert(e.amount, e.currency), type: "loss"}); });
@@ -496,7 +490,7 @@ function dashboardPage() {
     metric("Marge brute", comp ? money(margin) : "—", "CA moins coût des articles") +
     metric("À recevoir", comp ? money(unpaid) : "—", "Ventes non payées") + '</div>';
 
-  html += '<div class="card"><h2>Analyse Technique (Candlesticks, Niveaux & Flux)</h2>' + (comp ? chart : empty("Données insuffisantes")) + '</div>';
+  html += '<div class="card"><h2>Analyse Technique (Passez la souris sur les bougies)</h2>' + (comp ? chart : empty("Données insuffisantes")) + '</div>';
 
   html += '<div class="card"><h2>Ventes récentes</h2>';
   html += table(["Date", "Désignation", "Qté", "Montant", "Paiement", "Facture"], sales.map(function (s) {
@@ -678,19 +672,20 @@ function reportsPage() {
   var expenseRows = companyRows("expenses");
   var productRows = companyRows("products");
 
-  // 1. Donut Gains par Produit
+  // 1. Donut Gains par Produit (Division en parts multiples)
   var salesByProd = {};
   salesRows.forEach(function(s) {
     salesByProd[s.name] = (salesByProd[s.name] || 0) + convert(s.total, s.currency);
   });
   var totalS = rev || 1;
-  var gradSales = "conic-gradient(";
+  var gradSales = "";
   var currentAngle = 0;
-  var colorsSales = ["#3fb950", "#2ea043", "#1f883d", "#238636", "#116329"];
+  var colorsSales = ["#3fb950", "#2ea043", "#58a6ff", "#1f883d", "#33b3ae"];
   var legendSalesHtml = "";
   var idx = 0;
   for (var name in salesByProd) {
-    var pct = (salesByProd[name] / totalS) * 100;
+    var val = salesByProd[name];
+    var pct = (val / totalS) * 100;
     var nextAngle = currentAngle + pct;
     var col = colorsSales[idx % colorsSales.length];
     gradSales += col + " " + currentAngle + "% " + nextAngle + "%, ";
@@ -698,23 +693,23 @@ function reportsPage() {
     currentAngle = nextAngle;
     idx++;
   }
-  if (salesRows.length === 0) gradSales += "var(--border) 0% 100%";
-  else gradSales = gradSales.slice(0, -2);
-  gradSales += ")";
+  if (salesRows.length === 0) gradSales = "var(--border) 0% 100%";
+  else gradSales = "conic-gradient(" + gradSales.slice(0, -2) + ")";
 
-  // 2. Donut Dépenses / Charges
+  // 2. Donut Dépenses
   var expByCat = {};
   expenseRows.forEach(function(e) {
     expByCat[e.name] = (expByCat[e.name] || 0) + convert(e.amount, e.currency);
   });
   var totalEx = totalExpenses() || 1;
-  var gradExp = "conic-gradient(";
+  var gradExp = "";
   currentAngle = 0;
-  var colorsExp = ["#f85149", "#da3633", "#b62324", "#8e1519", "#67060c"];
+  var colorsExp = ["#f85149", "#da3633", "#e3b341", "#b62324", "#db6d28"];
   var legendExpHtml = "";
   idx = 0;
   for (var name in expByCat) {
-    var pct = (expByCat[name] / totalEx) * 100;
+    var val = expByCat[name];
+    var pct = (val / totalEx) * 100;
     var nextAngle = currentAngle + pct;
     var col = colorsExp[idx % colorsExp.length];
     gradExp += col + " " + currentAngle + "% " + nextAngle + "%, ";
@@ -722,13 +717,12 @@ function reportsPage() {
     currentAngle = nextAngle;
     idx++;
   }
-  if (expenseRows.length === 0) gradExp += "var(--border) 0% 100%";
-  else gradExp = gradExp.slice(0, -2);
-  gradExp += ")";
+  if (expenseRows.length === 0) gradExp = "var(--border) 0% 100%";
+  else gradExp = "conic-gradient(" + gradExp.slice(0, -2) + ")";
 
-  // 3. Donut Produits en Stock / Valeur
+  // 3. Donut Valeur du Stock
   var totalStockVal = productRows.reduce(function(sum, p) { return sum + (number(p.cost) * number(p.stock)); }, 0) || 1;
-  var gradProd = "conic-gradient(";
+  var gradProd = "";
   currentAngle = 0;
   var colorsProd = ["#58a6ff", "#1f6feb", "#388bfd", "#79c0ff", "#1158c7"];
   var legendProdHtml = "";
@@ -743,9 +737,8 @@ function reportsPage() {
     currentAngle = nextAngle;
     idx++;
   });
-  if (productRows.length === 0) gradProd += "var(--border) 0% 100%";
-  else gradProd = gradProd.slice(0, -2);
-  gradProd += ")";
+  if (productRows.length === 0) gradProd = "var(--border) 0% 100%";
+  else gradProd = "conic-gradient(" + gradProd.slice(0, -2) + ")";
 
   var html = pageHead("Analyses et rapports", "Résultats globaux, estimation TVA et répartition analytique.", '<button class="button" onclick="exportCSV()">Exporter CSV</button>');
   html += companyNotice();
@@ -1001,7 +994,7 @@ window.addPurchase = function (e) {
       if (!name) name = prod.name;
       costDiff = unitCost - number(prod.cost);
       prod.cost = unitCost;
-      prod.stock += qty; // Le stock est bien augmenté ici
+      prod.stock += qty;
     }
   }
 
@@ -1022,12 +1015,7 @@ window.addPurchase = function (e) {
   state.purchases.push(purchase);
   saveState();
   form.reset();
-  
-  var msg = "Réapprovisionnement enregistré.";
-  if (prodId) {
-    msg += " Stock mis à jour !";
-  }
-  notify(msg);
+  notify("Réapprovisionnement enregistré et stock mis à jour !");
   render();
 };
 
