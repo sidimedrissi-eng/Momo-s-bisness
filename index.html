@@ -194,7 +194,7 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 
   <div class="nav-label">GESTION</div>
   <button class="nav" data-page="products" onclick="go('products')">▤ Produits et stocks</button>
-  <button class="nav" data-page="sales" onclick="go('sales')">↗ Ventes et clients</button>
+  <button class="nav" data-page="sales" onclick="go('sales')">↗ Ventes, Soldes & Acomptes</button>
   <button class="nav" data-page="purchases" onclick="go('purchases')">↙ Achats et réappro</button>
   <button class="nav" data-page="finance" onclick="go('finance')">◈ Trésorerie et finances</button>
   <button class="nav" data-page="reports" onclick="go('reports')">▥ Analyses et rapports</button>
@@ -229,7 +229,7 @@ var titles = {
   dashboard: "Accueil",
   companies: "Entreprises",
   products: "Produits et stocks",
-  sales: "Ventes et clients",
+  sales: "Ventes, Soldes & Acomptes",
   purchases: "Achats et réapprovisionnements",
   finance: "Trésorerie et finances",
   reports: "Analyses et rapports",
@@ -448,7 +448,6 @@ function dashboardPage() {
   chart += '<polyline fill="none" stroke="#58a6ff" stroke-width="2.5" points="' + svgPoints.join(", ") + '" />';
   chart += '</svg>';
 
-  // Bougies avec info-bulle détaillée au survol (CA, Charges, Marge)
   for (var i = 0; i < 7; i++) {
     var isGain = daysSales[i] >= daysExpenses[i];
     var mainVal = Math.max(daysSales[i], daysExpenses[i]);
@@ -466,7 +465,7 @@ function dashboardPage() {
   chart += '</div>';
 
   var allTransactions = [];
-  companyRows("sales").forEach(function(s) { allTransactions.push({date: s.date, name: "Vente: " + s.name, amount: convert(s.total, s.currency), type: "gain"}); });
+  companyRows("sales").forEach(function(s) { allTransactions.push({date: s.date, name: s.name, amount: convert(s.total, s.currency), type: "gain"}); });
   companyRows("expenses").forEach(function(e) { allTransactions.push({date: e.date, name: "Dépense: " + e.name, amount: -convert(e.amount, e.currency), type: "loss"}); });
   companyRows("purchases").forEach(function(p) { allTransactions.push({date: p.date, name: "Achat: " + p.name, amount: -convert(p.total, p.currency), type: "loss"}); });
   allTransactions.sort(function(a,b) { return new Date(b.date) - new Date(a.date); });
@@ -493,11 +492,11 @@ function dashboardPage() {
   html += '<div class="card"><h2>Analyse Technique (Passez la souris sur les bougies)</h2>' + (comp ? chart : empty("Données insuffisantes")) + '</div>';
 
   html += '<div class="card"><h2>Ventes récentes</h2>';
-  html += table(["Date", "Désignation", "Qté", "Montant", "Paiement", "Facture"], sales.map(function (s) {
+  html += table(["Date", "Type / Désignation", "Client", "Montant", "Statut", "Facture"], sales.map(function (s) {
     return [
       escapeHTML(s.date),
       escapeHTML(s.name),
-      escapeHTML(s.qty),
+      escapeHTML(s.clientName || "Client"),
       money(s.total, s.currency),
       s.paid ? '<span class="badge">Payée</span>' : '<span class="badge pending">À régler</span>',
       '<button class="button" style="padding:4px 8px;font-size:11px;" onclick="viewInvoice(\'' + s.id + '\')">📄 Reçu</button>'
@@ -564,31 +563,33 @@ function productsPage() {
 function salesPage() {
   var prods = companyRows("products");
   var sales = companyRows("sales").slice().reverse();
-  var html = pageHead("Ventes et clients", "Enregistrez vos ventes (déduit automatiquement le stock).", '<button class="button primary" onclick="showForm(\'saleForm\')">+ Nouvelle vente</button>');
+  var html = pageHead("Ventes, Soldes & Acomptes", "Enregistrez vos ventes, acomptes ou soldes avec motif optionnel.", '<button class="button primary" onclick="showForm(\'saleForm\')">+ Nouvelle opération</button>');
   html += companyNotice();
-  html += '<div class="card hidden" id="saleForm"><h2>Enregistrer une vente</h2>';
-  if (!prods.length) {
-    html += empty("Ajoutez d’abord un article dans Produits et stocks.");
-  } else {
-    html += '<form onsubmit="addSale(event)"><div class="form-grid">' +
-      '<div class="field full"><label>Article à vendre *</label><select name="productId" required><option value="">Choisir un produit</option>' +
-      prods.map(function (p) {
-        var stockInfo = p.type === "Service" ? "" : " (En stock: " + p.stock + ")";
-        return '<option value="' + p.id + '">' + escapeHTML(p.name) + stockInfo + ' — ' + money(p.price, p.currency) + '</option>';
-      }).join("") + '</select></div>' +
-      '<div class="field"><label>Quantité vendue</label><input name="qty" type="number" value="1" min="0" required></div>' +
-      '<div class="field"><label>Nom du Client (optionnel)</label><input name="clientName" placeholder="ex: Client Anonyme"></div>' +
-      '<div class="field"><label>Devise</label><select name="currency">' + currencyOptions(state.currency) + '</select></div>' +
-      '<div class="field"><label>Date</label><input name="date" type="date" value="' + new Date().toISOString().slice(0, 10) + '" required></div>' +
-      '<div class="field"><label>Paiement</label><select name="paid"><option value="true">Payée</option><option value="false">À régler</option></select></div>' +
-      '</div><div class="form-actions"><button class="button primary">Valider la vente</button></div></form>';
-  }
-  html += '</div><div class="card">' + table(["Date", "Désignation", "Client", "Qté", "Montant Total", "Statut", "Facture", "Actions"], sales.map(function (s) {
+  
+  html += '<div class="card hidden" id="saleForm"><h2>Enregistrer une opération</h2><form onsubmit="addSale(event)"><div class="form-grid">' +
+    '<div class="field"><label>Type d’opération *</label><select name="saleType" id="saleTypeSelect" onchange="toggleSaleFields()">' +
+    '<option value="produit">Vente de produit / service</option>' +
+    '<option value="solde">Solde / Réduction (remise ou ajustement)</option>' +
+    '<option value="acompte">Acompte (avance sur commande)</option>' +
+    '</select></div>' +
+    '<div class="field" id="fieldProduct"><label>Article du catalogue *</label><select name="productId">' +
+    prods.map(function (p) { return '<option value="' + p.id + '">' + escapeHTML(p.name) + ' (Stock: ' + p.stock + ') — ' + money(p.price, p.currency) + '</option>'; }).join("") + '</select></div>' +
+    '<div class="field hidden" id="fieldCustomName"><label>Libellé / Désignation *</label><input name="customName" placeholder="ex: Solde facture #12 ou Acompte client X"></div>' +
+    '<div class="field" id="fieldQty"><label>Quantité</label><input name="qty" type="number" value="1" min="1"></div>' +
+    '<div class="field" id="fieldAmount"><label>Montant total (ou montant du solde / acompte) *</label><input name="customAmount" type="number" step="0.01" value="0"></div>' +
+    '<div class="field full"><label>Motif de régularisation (optionnel)</label><input name="reason" placeholder="ex: Remise commerciale exceptionnelle, avance chantier..."></div>' +
+    '<div class="field"><label>Nom du Client (optionnel)</label><input name="clientName" placeholder="ex: Client Anonyme"></div>' +
+    '<div class="field"><label>Devise</label><select name="currency">' + currencyOptions(state.currency) + '</select></div>' +
+    '<div class="field"><label>Date</label><input name="date" type="date" value="' + new Date().toISOString().slice(0, 10) + '" required></div>' +
+    '<div class="field"><label>Paiement</label><select name="paid"><option value="true">Payée / Encaissée</option><option value="false">À régler</option></select></div>' +
+    '</div><div class="form-actions"><button class="button primary">Valider l’opération</button></div></form></div>';
+
+  html += '<div class="card">' + table(["Date", "Désignation", "Client", "Motif", "Montant", "Statut", "Facture", "Actions"], sales.map(function (s) {
     return [
       escapeHTML(s.date),
       escapeHTML(s.name),
       escapeHTML(s.clientName || "Client"),
-      escapeHTML(s.qty),
+      escapeHTML(s.reason || "—"),
       money(s.total, s.currency),
       s.paid ? '<span class="badge">Payée</span>' : '<span class="badge pending">À régler</span>',
       '<button class="button" style="padding:4px 8px;font-size:11px;" onclick="viewInvoice(\'' + s.id + '\')">📄 Reçu</button>',
@@ -597,6 +598,30 @@ function salesPage() {
   })) + '</div>';
   return html;
 }
+
+window.toggleSaleFields = function() {
+  var type = document.getElementById("saleTypeSelect").value;
+  var fProd = document.getElementById("fieldProduct");
+  var fCust = document.getElementById("fieldCustomName");
+  var fQty = document.getElementById("fieldQty");
+  var fAmt = document.getElementById("fieldAmount");
+  if (type === "produit") {
+    fProd.classList.remove("hidden");
+    fCust.classList.add("hidden");
+    fQty.classList.remove("hidden");
+    fAmt.classList.add("hidden");
+  } else if (type === "solde") {
+    fProd.classList.add("hidden");
+    fCust.classList.remove("hidden");
+    fQty.classList.add("hidden");
+    fAmt.classList.remove("hidden");
+  } else if (type === "acompte") {
+    fProd.classList.add("hidden");
+    fCust.classList.remove("hidden");
+    fQty.classList.add("hidden");
+    fAmt.classList.remove("hidden");
+  }
+};
 
 function purchasesPage() {
   var prods = companyRows("products");
@@ -672,10 +697,11 @@ function reportsPage() {
   var expenseRows = companyRows("expenses");
   var productRows = companyRows("products");
 
-  // 1. Donut Gains par Produit (Division en parts multiples)
+  // 1. Donut Gains
   var salesByProd = {};
   salesRows.forEach(function(s) {
-    salesByProd[s.name] = (salesByProd[s.name] || 0) + convert(s.total, s.currency);
+    var key = s.name.startsWith("Solde") ? "Soldes / Réductions" : (s.name.startsWith("Acompte") ? "Acomptes" : s.name);
+    salesByProd[key] = (salesByProd[key] || 0) + convert(s.total, s.currency);
   });
   var totalS = rev || 1;
   var gradSales = "";
@@ -720,7 +746,7 @@ function reportsPage() {
   if (expenseRows.length === 0) gradExp = "var(--border) 0% 100%";
   else gradExp = "conic-gradient(" + gradExp.slice(0, -2) + ")";
 
-  // 3. Donut Valeur du Stock
+  // 3. Donut Stock
   var totalStockVal = productRows.reduce(function(sum, p) { return sum + (number(p.cost) * number(p.stock)); }, 0) || 1;
   var gradProd = "";
   currentAngle = 0;
@@ -823,7 +849,7 @@ function academyPage() {
   });
 
   return html;
-}
+};
 
 window.toggleCourse = function (courseId) {
   if (!state.completedCourses) state.completedCourses = [];
@@ -853,11 +879,12 @@ window.viewInvoice = function (saleId) {
   var html = '<h2>Facture / Reçu</h2>' +
     '<p><strong>' + escapeHTML(compName) + '</strong><br><small>' + escapeHTML(compOrigin) + '</small></p>' +
     '<p><strong>Date :</strong> ' + escapeHTML(sale.date) + '<br>' +
-    '<strong>Client :</strong> ' + escapeHTML(sale.clientName || "Client") + '</p>' +
-    '<table><thead><tr><th>Désignation</th><th>Qté</th><th>Total</th></tr></thead><tbody>' +
-    '<tr><td>' + escapeHTML(sale.name) + '</td><td>' + escapeHTML(sale.qty) + '</td><td>' + money(sale.total, sale.currency) + '</td></tr>' +
+    '<strong>Client :</strong> ' + escapeHTML(sale.clientName || "Client") + '<br>' +
+    (sale.reason ? '<strong>Motif :</strong> ' + escapeHTML(sale.reason) : '') + '</p>' +
+    '<table><thead><tr><th>Désignation</th><th>Total</th></tr></thead><tbody>' +
+    '<tr><td>' + escapeHTML(sale.name) + '</td><td>' + money(sale.total, sale.currency) + '</td></tr>' +
     '</tbody></table>' +
-    '<p style="text-align:right;"><strong>Total à payer : ' + money(sale.total, sale.currency) + '</strong></p>' +
+    '<p style="text-align:right;"><strong>Total : ' + money(sale.total, sale.currency) + '</strong></p>' +
     '<div class="no-print" style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">' +
     '<button class="button primary" onclick="window.print()">🖨️ Imprimer / PDF</button>' +
     '<button class="button" onclick="closeInvoice()">Fermer</button></div>';
@@ -939,38 +966,63 @@ window.addSale = function (e) {
   var comp = activeCompany();
   if (!comp) { notify("Veuillez sélectionner une entreprise."); return; }
   var form = e.target;
-  var prodId = form.productId.value;
-  var qty = number(form.qty.value);
-  var prod = null;
-  for (var i = 0; i < state.products.length; i++) {
-    if (state.products[i].id === prodId) { prod = state.products[i]; break; }
+  var saleType = form.saleType.value;
+  var reason = form.reason.value.trim();
+  var clientName = form.clientName.value.trim();
+  var date = form.date.value;
+  var currency = form.currency.value;
+  var paid = form.paid.value === "true";
+
+  var saleName = "";
+  var total = 0;
+  var productId = "";
+  var qty = 1;
+
+  if (saleType === "produit") {
+    productId = form.productId.value;
+    qty = number(form.qty.value);
+    var prod = null;
+    for (var i = 0; i < state.products.length; i++) {
+      if (state.products[i].id === productId) { prod = state.products[i]; break; }
+    }
+    if (!prod) { notify("Produit introuvable."); return; }
+    if (prod.type === "Produit" && prod.stock < qty) {
+      notify("Stock insuffisant ! Stock actuel : " + prod.stock);
+      return;
+    }
+    if (prod.type === "Produit") {
+      prod.stock -= qty;
+    }
+    saleName = prod.name;
+    total = number(prod.price) * qty;
+  } else if (saleType === "solde") {
+    var customName = form.customName.value.trim() || "Solde / Réduction";
+    saleName = "Solde: " + customName;
+    total = number(form.customAmount.value);
+  } else if (saleType === "acompte") {
+    var customName = form.customName.value.trim() || "Acompte commande";
+    saleName = "Acompte: " + customName;
+    total = number(form.customAmount.value);
   }
-  if (!prod) { notify("Produit introuvable."); return; }
-  if (prod.type === "Produit" && prod.stock < qty) {
-    notify("Stock insuffisant ! Stock actuel : " + prod.stock);
-    return;
-  }
-  if (prod.type === "Produit") {
-    prod.stock -= qty;
-  }
-  var total = number(prod.price) * qty;
+
   var sale = {
     id: makeId(),
     companyId: comp.id,
-    productId: prod.id,
-    name: prod.name,
+    productId: productId,
+    name: saleName,
     qty: qty,
-    unitPrice: prod.price,
     total: total,
-    currency: prod.currency,
-    clientName: form.clientName.value.trim(),
-    date: form.date.value,
-    paid: form.paid.value === "true"
+    currency: currency,
+    clientName: clientName,
+    reason: reason,
+    date: date,
+    paid: paid
   };
+
   state.sales.push(sale);
   saveState();
   form.reset();
-  notify("Vente enregistrée avec succès.");
+  notify("Opération enregistrée avec succès.");
   render();
 };
 
@@ -1048,12 +1100,12 @@ window.deleteItem = function (type, id) {
 };
 
 window.exportCSV = function () {
-  var rows = [["Type", "Date", "Désignation", "Montant", "Devise"]];
+  var rows = [["Type", "Date", "Désignation", "Motif", "Montant", "Devise"]];
   companyRows("sales").forEach(function (s) {
-    rows.push(["Vente", s.date, s.name, s.total, s.currency]);
+    rows.push(["Vente", s.date, s.name, s.reason || "", s.total, s.currency]);
   });
   companyRows("expenses").forEach(function (ex) {
-    rows.push(["Dépense", ex.date, ex.name, ex.amount, ex.currency]);
+    rows.push(["Dépense", ex.date, ex.name, "", ex.amount, ex.currency]);
   });
   var csvContent = "data:text/csv;charset=utf-8," + rows.map(function (e) { return e.join(","); }).join("\n");
   var encodedUri = encodeURI(csvContent);
