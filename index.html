@@ -1,35 +1,550 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Momo's Business</title>
+<style>
+:root {
+  --navy:#0d1117;
+  --navy2:#161b22;
+  --green:#16845b;
+  --accent-green:#3fb950;
+  --red:#f85149;
+  --bg:#05070b;
+  --card-bg:#111620;
+  --white:#fff;
+  --text:#f0f6fc;
+  --muted:#8b949e;
+  --border:#21262d;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:250px;background:var(--navy);padding:24px 14px;flex-shrink:0;border-right:1px solid var(--border)}
+.brand{font-size:19px;font-weight:bold;padding:0 10px 28px;color:white}
+.brand span{color:#4bd49b}
+.nav-label{color:var(--muted);font-size:10px;letter-spacing:1.3px;margin:20px 10px 8px}
+.nav{width:100%;border:0;color:#c9d1d9;background:transparent;padding:12px;border-radius:8px;text-align:left;margin:2px 0;display:block}
+.nav:hover{background:#21262d;color:white}
+.nav.active{background:#1f3833;color:#4bd49b;border-left:3px solid #4bd49b}
+main{flex:1;min-width:0}
+.topbar{background:var(--card-bg);border-bottom:1px solid var(--border);padding:18px 28px;display:flex;align-items:center;justify-content:space-between}
+.topbar small{color:var(--muted)}
+.content{padding:28px;max-width:1500px;margin:auto}
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:24px}
+h1{font-size:27px;margin:0 0 8px;color:white}
+h2{font-size:16px;margin:0 0 16px;color:white}
+p{line-height:1.5}
+.muted{color:var(--muted);font-size:13px}
+.eyebrow{color:#4bd49b;font-size:10px;font-weight:bold;letter-spacing:1.5px;margin-bottom:8px}
+.button{padding:10px 14px;border:1px solid var(--border);background:#21262d;color:var(--text);border-radius:8px}
+.button.primary{background:var(--green);color:white;border-color:var(--green)}
+.button.danger{background:#3c1e1e;color:var(--red);border-color:var(--red)}
+.button:hover{opacity:.88}
+.grid{display:grid;gap:16px}
+.metrics{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;min-width:0}
+.metric-label{color:var(--muted);font-size:12px}
+.metric-value{font-size:25px;font-weight:bold;margin:14px 0 8px;color:white}
+.metric-note{color:var(--muted);font-size:11px}
+.two-columns{grid-template-columns:1.5fr 1fr}
+.quick-link{display:block;text-align:left;width:100%;background:#161b22;border:1px solid var(--border);border-radius:9px;padding:14px;margin:8px 0;color:var(--text)}
+.quick-link:hover{border-color:var(--green)}
+.quick-link strong{display:block;color:white}
+.quick-link small{color:var(--muted);display:block;margin-top:5px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:13px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text)}
+th{background:#161b22;color:var(--muted);text-transform:uppercase;font-size:10px}
+.table-wrap{overflow-x:auto}
+.empty{text-align:center;color:var(--muted);padding:28px 12px;font-size:13px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;font-weight:bold;color:var(--muted)}
+.field input,.field select{padding:11px;border:1px solid var(--border);border-radius:7px;width:100%;background:#0d1117;color:white}
+.full{grid-column:1/-1}
+.form-actions{margin-top:16px}
+.notice{background:#11261e;color:#4bd49b;padding:14px;border-radius:8px;font-size:13px;margin-bottom:18px;border:1px solid #16845b55}
+.badge{display:inline-block;padding:5px 8px;border-radius:20px;background:#11261e;color:#4bd49b;font-size:10px}
+.badge.pending{background:#2c220a;color:#e3b341}
+.badge.completed{background:#1f3833;color:#3fb950}
+.hidden{display:none!important}
+.text-green{color:var(--accent-green);font-weight:bold}
+.text-red{color:var(--red);font-weight:bold}
+.lesson-box{background:#161b22;border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:12px;font-size:13px;line-height:1.6}
+.lesson-box ul{margin:8px 0;padding-left:20px}
+.bar-chart{display:flex;align-items:end;gap:12px;height:190px;padding:15px 5px 24px;border-bottom:1px solid var(--border)}
+.bar-column{flex:1;height:100%;display:flex;align-items:end;position:relative}
+.bar{width:100%;background:var(--green);border-radius:5px 5px 0 0;min-height:3px}
+.bar-label{position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px;color:var(--muted)}
+.toast{position:fixed;bottom:20px;right:20px;background:#1f242c;color:white;padding:14px 18px;border-radius:9px;z-index:10;border:1px solid var(--border);box-shadow:0 4px 12px #0008}
+.invoice-modal{position:fixed;inset:0;width:100%;height:100%;background:#000d;display:flex;align-items:center;justify-content:center;z-index:100}
+.invoice-box{background:#fff;color:#172536;padding:28px;border-radius:12px;width:90%;max-width:550px;font-family:Arial,sans-serif}
+.invoice-box h2{color:#14263d;margin-top:0;border-bottom:2px solid #16845b;padding-bottom:8px}
+.invoice-box table{width:100%;margin:16px 0}
+.invoice-box th,.invoice-box td{color:#172536;border-bottom:1px solid #ddd;padding:8px}
+.invoice-box th{background:#f4f7fb}
+@media print{body *{visibility:hidden}.invoice-box,.invoice-box *{visibility:visible}.invoice-box{position:absolute;left:0;top:0;width:100%;max-width:100%}.no-print{display:none!important}}
+@media(max-width:1000px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.two-columns{grid-template-columns:1fr}}
+@media(max-width:700px){.layout{display:block}.sidebar{width:100%;padding:14px}.brand{padding-bottom:12px}.nav-label{margin-top:12px}.content{padding:16px}.topbar{padding:14px 16px}.page-head{display:block}.metrics{gap:10px}.card{padding:14px}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand">Momo's <span>Business</span></div>
+  <div class="nav-label">ESPACE DE TRAVAIL</div>
+  <button class="nav active" data-page="dashboard" onclick="go('dashboard')">⌂ Accueil</button>
+  <button class="nav" data-page="companies" onclick="go('companies')">▦ Entreprises</button>
+  <div class="nav-label">GESTION</div>
+  <button class="nav" data-page="products" onclick="go('products')">▤ Produits et stocks</button>
+  <button class="nav" data-page="sales" onclick="go('sales')">↗ Ventes et clients</button>
+  <button class="nav" data-page="purchases" onclick="go('purchases')">↙ Achats et réappro</button>
+  <button class="nav" data-page="finance" onclick="go('finance')">◈ Trésorerie et finances</button>
+  <button class="nav" data-page="reports" onclick="go('reports')">▥ Analyses et rapports</button>
+  <div class="nav-label">FORMATION</div>
+  <button class="nav" data-page="academy" onclick="go('academy')">Académie</button>
+  <div class="nav-label">CONFIGURATION</div>
+  <button class="nav" data-page="settings" onclick="go('settings')">⚙ Paramètres</button>
+</aside>
+<main>
+  <header class="topbar">
+    <strong id="breadcrumb">Espace de travail / Accueil</strong>
+    <small>Prototype de gestion pro</small>
+  </header>
+  <div class="content" id="content"></div>
+</main>
+</div>
+<div id="toast" class="toast hidden"></div>
+<div id="invoiceModal" class="invoice-modal hidden"><div class="invoice-box" id="invoiceContent"></div></div>
 
-window.deleteItem = function (category, id) {
-  if (!confirm("Voulez-vous vraiment supprimer cet élément ?")) return;
+<script>
+(function(){
+"use strict";
 
-  if (!state[category]) return;
+var titles={
+  dashboard:"Accueil",companies:"Entreprises",products:"Produits et stocks",
+  sales:"Ventes et clients",purchases:"Achats et réapprovisionnements",
+  finance:"Trésorerie et finances",reports:"Analyses et rapports",
+  academy:"Académie",settings:"Paramètres"
+};
 
-  var item = state[category].find(function (entry) {
-    return entry.id === id;
+var defaultState={
+  currency:"MAD",vatRate:20,companies:[],products:[],sales:[],
+  purchases:[],expenses:[],activeCompany:"",completedCourses:[],
+  rates:{MAD:1,EUR:10.8,USD:9.9,GBP:12.5,CAD:7.2,CHF:11.2,DZD:0.074,TND:3.2}
+};
+
+var state=loadState();
+var currentPage="dashboard";
+
+function loadState(){
+  try{
+    var saved=localStorage.getItem("momosBusiness");
+    return saved?Object.assign({},defaultState,JSON.parse(saved)):JSON.parse(JSON.stringify(defaultState));
+  }catch(e){return JSON.parse(JSON.stringify(defaultState));}
+}
+function saveState(){
+  try{localStorage.setItem("momosBusiness",JSON.stringify(state));}catch(e){}
+}
+function makeId(){return Date.now().toString(36)+Math.random().toString(36).substring(2,7);}
+function escapeHTML(val){
+  return String(val==null?"":val).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
   });
+}
+function number(v){var n=Number(v);return Number.isFinite(n)?n:0;}
+function money(v,currency){
+  return number(v).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" "+(currency||state.currency);
+}
+function today(){return new Date().toISOString().slice(0,10);}
+function activeCompany(){return state.companies.find(function(c){return c.id===state.activeCompany;})||null;}
+function companyRows(category){var c=activeCompany();return c?(state[category]||[]).filter(function(x){return x.companyId===c.id;}):[];}
+function notify(message){
+  var el=document.getElementById("toast");
+  el.textContent=message;el.classList.remove("hidden");
+  setTimeout(function(){el.classList.add("hidden");},2800);
+}
+function convert(amount,from){
+  var rates=state.rates||defaultState.rates;
+  var mad=number(amount)*number(rates[from]||1);
+  return mad/number(rates[state.currency]||1);
+}
+function pageHead(kicker,title,description,button){
+  return '<div class="page-head"><div><div class="eyebrow">'+kicker+'</div><h1>'+title+'</h1><p class="muted">'+description+'</p></div>'+(button||"")+'</div>';
+}
+function metric(label,value,note){
+  return '<div class="card"><div class="metric-label">'+label+'</div><div class="metric-value">'+value+'</div><div class="metric-note">'+note+'</div></div>';
+}
+function companySelect(){
+  return '<div class="field"><label>Entreprise active</label><select onchange="selectCompany(this.value)"><option value="">Sélectionner une entreprise</option>'+
+    state.companies.map(function(c){return '<option value="'+c.id+'" '+(c.id===state.activeCompany?'selected':'')+'>'+escapeHTML(c.name)+'</option>';}).join("")+
+    '</select></div>';
+}
 
-  if (!item) return;
+function dashboardPage(){
+  var comp=activeCompany(),sales=companyRows("sales"),expenses=companyRows("expenses"),products=companyRows("products");
+  var revenue=sales.reduce(function(a,s){return a+number(s.total);},0);
+  var costs=expenses.reduce(function(a,e){return a+number(e.amount);},0);
+  var low=products.filter(function(p){return p.type!=="Service"&&number(p.stock)<=5;}).length;
+  var html=pageHead("VUE D'ENSEMBLE","Tableau de bord","Suivez les indicateurs essentiels de votre activité.");
+  if(!comp){html+='<div class="notice">Commencez par créer une entreprise dans la section Entreprises.</div>';}
+  html+='<div class="grid metrics">'+
+    metric("Chiffre d’affaires",money(revenue), "Total des ventes enregistrées")+
+    metric("Dépenses",money(costs),"Dépenses saisies en trésorerie")+
+    metric("Résultat simplifié",money(revenue-costs),"Ventes moins dépenses enregistrées")+
+    metric("Stocks faibles",String(low),"Produits avec 5 unités ou moins")+'</div>';
+  html+='<div class="grid two-columns"><div class="card"><h2>Accès rapide</h2>'+
+    '<button class="quick-link" onclick="go(\'sales\')"><strong>Enregistrer une vente</strong><small>Ajouter une vente et actualiser le stock</small></button>'+
+    '<button class="quick-link" onclick="go(\'products\')"><strong>Gérer les produits</strong><small>Prix, coût et quantité en stock</small></button>'+
+    '<button class="quick-link" onclick="go(\'finance\')"><strong>Consulter la trésorerie</strong><small>Charges et dépenses</small></button></div>'+
+    '<div class="card"><h2>Votre espace</h2><p class="muted">'+(comp?("Entreprise active : "+escapeHTML(comp.name)):"Aucune entreprise sélectionnée")+'</p>'+
+    '<p class="muted">Les données de ce prototype sont enregistrées dans le stockage local de ce navigateur.</p></div></div>';
+  return html;
+}
 
-  // Si une vente est supprimée, restituer les articles au stock.
-  if (category === "sales" && item.productId) {
-    var product = state.products.find(function (p) {
-      return p.id === item.productId;
-    });
+function companiesPage(){
+  var html=pageHead("ORGANISATION","Entreprises","Créez et sélectionnez les espaces de gestion de vos entreprises.",
+    '<button class="button primary" onclick="showForm(\'companyForm\')">+ Nouvelle entreprise</button>');
+  html+='<div class="card hidden" id="companyForm"><h2>Créer une entreprise</h2><form onsubmit="addCompany(event)"><div class="form-grid">'+
+    '<div class="field"><label>Nom de l’entreprise *</label><input name="name" required></div>'+
+    '<div class="field"><label>Activité</label><select name="type"><option>Commerce</option><option>Services</option><option>Commerce et services</option></select></div>'+
+    '<div class="field"><label>Devise principale</label><select name="currency">'+currencyOptions("MAD")+'</select></div>'+
+    '<div class="field"><label>Pays d’origine</label><input name="originCountry" placeholder="Maroc"></div>'+
+    '<div class="field full"><label>Pays ciblés</label><input name="targetCountries" placeholder="Maroc, France..."></div></div>'+
+    '<div class="form-actions"><button class="button primary">Créer l’entreprise</button></div></form></div>';
+  var rows=state.companies;
+  html+='<div class="card"><h2>Mes entreprises</h2><div class="table-wrap"><table><thead><tr><th>Nom</th><th>Activité</th><th>Devise</th><th>Statut</th><th>Actions</th></tr></thead><tbody>';
+  if(!rows.length)html+='<tr><td colspan="5" class="empty">Aucune entreprise. Créez votre première entreprise.</td></tr>';
+  rows.forEach(function(c){
+    html+='<tr><td>'+escapeHTML(c.name)+'</td><td>'+escapeHTML(c.type)+'</td><td>'+escapeHTML(c.currency)+'</td><td>'+(c.id===state.activeCompany?'<span class="badge">Active</span>':'—')+'</td><td>'+
+      (c.id!==state.activeCompany?'<button class="button" onclick="selectCompany(\''+c.id+'\')">Sélectionner</button> ':"")+
+      '<button class="button danger" onclick="deleteCompany(\''+c.id+'\')">Supprimer</button></td></tr>';
+  });
+  return html+'</tbody></table></div></div>';
+}
 
-    if (product && product.type !== "Service") {
-      product.stock = number(product.stock) + number(item.qty);
+function currencyOptions(selected){
+  var currencies=["MAD","EUR","USD","GBP","CAD","CHF","DZD","TND"];
+  return currencies.map(function(c){return '<option value="'+c+'" '+(c===selected?'selected':'')+'>'+c+'</option>';}).join("");
+}
+
+function productsPage(){
+  var comp=activeCompany(),rows=companyRows("products");
+  var html=pageHead("CATALOGUE","Produits et stocks","Gérez vos produits, services, coûts, prix et quantités.",
+    '<button class="button primary" onclick="showForm(\'productForm\')">+ Ajouter</button>');
+  if(!comp)html+='<div class="notice">Créez ou sélectionnez une entreprise avant d’ajouter des produits.</div>';
+  html+='<div class="card hidden" id="productForm"><h2>Nouvel article</h2><form onsubmit="addProduct(event)"><div class="form-grid">'+
+    '<div class="field"><label>Nom *</label><input name="name" required></div>'+
+    '<div class="field"><label>Type</label><select name="type"><option>Produit</option><option>Service</option></select></div>'+
+    '<div class="field"><label>Coût d’achat</label><input name="cost" type="number" min="0" step="0.01" value="0" required></div>'+
+    '<div class="field"><label>Prix de vente</label><input name="price" type="number" min="0" step="0.01" value="0" required></div>'+
+    '<div class="field"><label>Stock initial</label><input name="stock" type="number" min="0" step="1" value="0" required></div>'+
+    '<div class="field"><label>Devise</label><select name="currency">'+currencyOptions(state.currency)+'</select></div></div>'+
+    '<div class="form-actions"><button class="button primary">Enregistrer</button></div></form></div>';
+  html+='<div class="card"><h2>Catalogue</h2><div class="table-wrap"><table><thead><tr><th>Nom</th><th>Type</th><th>Coût</th><th>Prix</th><th>Stock</th><th>Actions</th></tr></thead><tbody>';
+  if(!rows.length)html+='<tr><td colspan="6" class="empty">Aucun article enregistré.</td></tr>';
+  rows.forEach(function(p){
+    html+='<tr><td>'+escapeHTML(p.name)+'</td><td>'+escapeHTML(p.type)+'</td><td>'+money(p.cost,p.currency)+'</td><td>'+money(p.price,p.currency)+'</td><td>'+ (p.type==="Service"?"—":number(p.stock))+'</td><td><button class="button danger" onclick="deleteItem(\'products\',\''+p.id+'\')">Supprimer</button></td></tr>';
+  });
+  return html+'</tbody></table></div></div>';
+}
+
+function salesPage(){
+  var comp=activeCompany(),products=companyRows("products"),rows=companyRows("sales");
+  var html=pageHead("ACTIVITÉ COMMERCIALE","Ventes et clients","Enregistrez les ventes, suivez les paiements et éditez les reçus.",
+    '<button class="button primary" onclick="showForm(\'saleForm\')">+ Nouvelle vente</button>');
+  if(!comp)html+='<div class="notice">Créez ou sélectionnez une entreprise pour enregistrer une vente.</div>';
+  html+='<div class="card hidden" id="saleForm"><h2>Enregistrer une vente</h2><form onsubmit="addSale(event)"><div class="form-grid">'+
+    '<div class="field full"><label>Produit ou service *</label><select name="productId" required><option value="">Choisir un article</option>'+
+    products.map(function(p){return '<option value="'+p.id+'">'+escapeHTML(p.name)+' — '+money(p.price,p.currency)+(p.type!=="Service"?" (stock : "+p.stock+")":"")+'</option>';}).join("")+'</select></div>'+
+    '<div class="field"><label>Nom du client</label><input name="clientName" placeholder="Client"></div>'+
+    '<div class="field"><label>Quantité *</label><input name="qty" type="number" min="1" step="1" value="1" required></div>'+
+    '<div class="field"><label>Date</label><input name="date" type="date" value="'+today()+'" required></div>'+
+    '<div class="field"><label>Paiement</label><select name="paid"><option value="true">Payée</option><option value="false">À régler</option></select></div>'+
+    '<div class="field"><label>Devise d’affichage</label><select name="currency">'+currencyOptions(state.currency)+'</select></div></div>'+
+    '<div class="form-actions"><button class="button primary">Enregistrer la vente</button></div></form></div>';
+  html+='<div class="card"><h2>Historique des ventes</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Produit</th><th>Client</th><th>Qté</th><th>Total</th><th>Paiement</th><th>Actions</th></tr></thead><tbody>';
+  if(!rows.length)html+='<tr><td colspan="7" class="empty">Aucune vente enregistrée.</td></tr>';
+  rows.slice().reverse().forEach(function(s){
+    html+='<tr><td>'+escapeHTML(s.date)+'</td><td>'+escapeHTML(s.name)+'</td><td>'+escapeHTML(s.clientName||"Client")+'</td><td>'+number(s.qty)+'</td><td>'+money(s.total,s.currency)+'</td><td><span class="badge '+(s.paid?"completed":"pending")+'">'+(s.paid?"Payée":"À régler")+'</span></td><td><button class="button" onclick="viewInvoice(\''+s.id+'\')">Reçu</button> <button class="button danger" onclick="deleteItem(\'sales\',\''+s.id+'\')">Supprimer</button></td></tr>';
+  });
+  return html+'</tbody></table></div><div class="form-actions"><button class="button" onclick="exportCSV()">Exporter les ventes en CSV</button></div></div>';
+}
+
+function purchasesPage(){
+  var comp=activeCompany(),products=companyRows("products"),rows=companyRows("purchases");
+  var html=pageHead("APPROVISIONNEMENT","Achats et réapprovisionnements","Enregistrez vos achats et mettez à jour les stocks.",
+    '<button class="button primary" onclick="showForm(\'purchaseForm\')">+ Nouvel achat</button>');
+  if(!comp)html+='<div class="notice">Sélectionnez une entreprise avant d’enregistrer un achat.</div>';
+  html+='<div class="card hidden" id="purchaseForm"><h2>Enregistrer un achat</h2><form onsubmit="addPurchase(event)"><div class="form-grid">'+
+    '<div class="field"><label>Libellé *</label><input name="name" required placeholder="Facture fournisseur"></div>'+
+    '<div class="field"><label>Produit lié (facultatif)</label><select name="productId"><option value="">Aucun</option>'+
+    products.map(function(p){return '<option value="'+p.id+'">'+escapeHTML(p.name)+'</option>';}).join("")+'</select></div>'+
+    '<div class="field"><label>Quantité</label><input name="qty" type="number" min="1" step="1" value="1" required></div>'+
+    '<div class="field"><label>Coût unitaire</label><input name="unitCost" type="number" min="0" step="0.01" value="0" required></div>'+
+    '<div class="field"><label>Devise</label><select name="currency">'+currencyOptions(state.currency)+'</select></div>'+
+    '<div class="field"><label>Date</label><input name="date" type="date" value="'+today()+'" required></div>'+
+    '<div class="field"><label>Paiement</label><select name="paid"><option value="true">Payé</option><option value="false">À régler</option></select></div></div>'+
+    '<div class="form-actions"><button class="button primary">Enregistrer l’achat</button></div></form></div>';
+  html+='<div class="card"><h2>Historique des achats</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Libellé</th><th>Quantité</th><th>Total</th><th>Paiement</th><th>Actions</th></tr></thead><tbody>';
+  if(!rows.length)html+='<tr><td colspan="6" class="empty">Aucun achat enregistré.</td></tr>';
+  rows.slice().reverse().forEach(function(p){
+    html+='<tr><td>'+escapeHTML(p.date)+'</td><td>'+escapeHTML(p.name)+'</td><td>'+number(p.qty)+'</td><td>'+money(p.total,p.currency)+'</td><td><span class="badge '+(p.paid?"completed":"pending")+'">'+(p.paid?"Payé":"À régler")+'</span></td><td><button class="button danger" onclick="deleteItem(\'purchases\',\''+p.id+'\')">Supprimer</button></td></tr>';
+  });
+  return html+'</tbody></table></div></div>';
+}
+
+/* TRÉSORERIE ET FINANCES : ajout du choix de nature et de la quantité */
+function financePage(){
+  var comp=activeCompany(),rows=companyRows("expenses");
+  var total=rows.reduce(function(a,e){return a+number(e.amount);},0);
+  var html=pageHead("SUIVI FINANCIER","Trésorerie et finances","Suivez les charges et les dépenses de votre entreprise.",
+    '<button class="button primary" onclick="showForm(\'expenseForm\')">+ Ajouter une dépense</button>');
+  if(!comp)html+='<div class="notice">Sélectionnez une entreprise avant d’ajouter une dépense.</div>';
+
+  html+='<div class="grid metrics">'+metric("Total des dépenses",money(total),"Dépenses enregistrées")+'</div>';
+  html+='<div class="card hidden" id="expenseForm"><h2>Nouvelle dépense</h2>'+
+    '<form onsubmit="addExpense(event)"><div class="form-grid">'+
+    '<div class="field"><label>Nature *</label><select name="type" onchange="toggleExpenseQty(this.value)"><option value="Charge classique">Charge classique</option><option value="Produit">Produit</option></select></div>'+
+    '<div class="field"><label>Libellé *</label><input name="name" required placeholder="Ex. : achat de fournitures"></div>'+
+    '<div class="field" id="expenseQtyField" style="display:none"><label>Quantité *</label><input id="expenseQty" name="qty" type="number" min="1" step="1" value="1"></div>'+
+    '<div class="field"><label>Montant total *</label><input name="amount" type="number" min="0" step="0.01" value="0" required></div>'+
+    '<div class="field"><label>Devise</label><select name="currency">'+currencyOptions(state.currency)+'</select></div>'+
+    '<div class="field"><label>Date</label><input name="date" type="date" value="'+today()+'" required></div>'+
+    '</div><div class="form-actions"><button class="button primary">Enregistrer</button></div></form></div>';
+
+  html+='<div class="card"><h2>Historique des dépenses</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Nature</th><th>Libellé</th><th>Quantité</th><th>Montant</th><th>Actions</th></tr></thead><tbody>';
+  if(!rows.length)html+='<tr><td colspan="6" class="empty">Aucune dépense enregistrée.</td></tr>';
+  rows.slice().reverse().forEach(function(e){
+    html+='<tr><td>'+escapeHTML(e.date)+'</td><td>'+escapeHTML(e.type||"Charge classique")+'</td><td>'+escapeHTML(e.name)+'</td><td>'+(e.type==="Produit"?number(e.qty):"—")+'</td><td>'+money(e.amount,e.currency)+'</td><td><button class="button danger" onclick="deleteItem(\'expenses\',\''+e.id+'\')">Supprimer</button></td></tr>';
+  });
+  return html+'</tbody></table></div></div>';
+}
+
+function reportsPage(){
+  var sales=companyRows("sales"),expenses=companyRows("expenses"),products=companyRows("products");
+  var revenue=sales.reduce(function(a,s){return a+number(s.total);},0);
+  var costs=expenses.reduce(function(a,e){return a+number(e.amount);},0);
+  var paid=sales.filter(function(s){return s.paid;}).reduce(function(a,s){return a+number(s.total);},0);
+  var html=pageHead("PILOTAGE","Analyses et rapports","Une vue synthétique des données enregistrées.");
+  html+='<div class="grid metrics">'+metric("Chiffre d’affaires",money(revenue),"Ventes enregistrées")+
+    metric("Dépenses",money(costs),"Charges enregistrées")+
+    metric("Résultat simplifié",money(revenue-costs),"Ventes moins dépenses")+
+    metric("Ventes payées",money(paid),"Montants marqués comme payés")+'</div>';
+  html+='<div class="card"><h2>Stocks</h2><div class="table-wrap"><table><thead><tr><th>Produit</th><th>Stock</th><th>Coût unitaire</th><th>Prix unitaire</th></tr></thead><tbody>';
+  if(!products.length)html+='<tr><td colspan="4" class="empty">Aucun produit enregistré.</td></tr>';
+  products.forEach(function(p){
+    html+='<tr><td>'+escapeHTML(p.name)+'</td><td>'+number(p.stock)+'</td><td>'+money(p.cost,p.currency)+'</td><td>'+money(p.price,p.currency)+'</td></tr>';
+  });
+  return html+'</tbody></table></div></div>';
+}
+
+function academyPage(){
+  var courses=[
+    {id:"bases",title:"Les bases de la gestion",desc:"Comprendre les revenus, les dépenses, la marge et le résultat.",content:"Le chiffre d’affaires correspond au total des ventes. Les dépenses représentent l’argent utilisé pour faire fonctionner l’activité. Le résultat simplifié est calculé ici en soustrayant les dépenses saisies du chiffre d’affaires. Ce calcul ne remplace pas une comptabilité complète."},
+    {id:"stocks",title:"Gérer les stocks",desc:"Comprendre les quantités disponibles et le réapprovisionnement.",content:"Un stock bien suivi permet de savoir combien d’unités restent disponibles. Une vente réduit le stock d’un produit. Un achat associé à un produit augmente le stock. Les services ne sont généralement pas suivis en unités de stock."},
+    {id:"ventes",title:"Suivre les ventes",desc:"Enregistrer une vente et contrôler son paiement.",content:"Une vente doit préciser l’article, la quantité, la date et, si nécessaire, le client. Le statut de paiement permet de distinguer les ventes payées des ventes restant à régler."},
+    {id:"tresorerie",title:"Comprendre la trésorerie",desc:"Classer les dépenses et suivre les sorties d’argent.",content:"La trésorerie aide à suivre les entrées et sorties d’argent. Saisissez les dépenses avec un libellé compréhensible, un montant, une devise et une date. Pour un produit acheté, la quantité peut aussi être renseignée."}
+  ];
+  var html=pageHead("APPRENDRE","Académie","Des modules pratiques pour apprendre les bases de la gestion d’entreprise.");
+  courses.forEach(function(c){
+    var done=state.completedCourses.indexOf(c.id)!==-1;
+    html+='<div class="card"><div class="eyebrow">MODULE DE FORMATION</div><h2>'+c.title+'</h2><p class="muted">'+c.desc+'</p><div class="lesson-box">'+c.content+'</div><div class="form-actions"><button class="button '+(done?"":"primary")+'" onclick="toggleCourse(\''+c.id+'\')">'+(done?"Marquer comme à revoir":"Marquer comme terminé")+'</button></div></div>';
+  });
+  return html;
+}
+
+function settingsPage(){
+  var html=pageHead("CONFIGURATION","Paramètres","Configurez les paramètres généraux et gérez une sauvegarde de vos données.");
+  html+='<div class="card"><h2>Préférences générales</h2><form onsubmit="saveSettings(event)"><div class="form-grid">'+
+    '<div class="field"><label>Devise principale</label><select name="currency">'+currencyOptions(state.currency)+'</select></div>'+
+    '<div class="field"><label>TVA (%)</label><input name="vatRate" type="number" min="0" max="100" step="0.01" value="'+number(state.vatRate)+'"></div>'+
+    '<div class="field"><label>Taux EUR vers MAD</label><input name="eurRate" type="number" min="0.0001" step="0.0001" value="'+number(state.rates.EUR)+'" disabled></div>'+
+    '</div><div class="form-actions"><button class="button primary">Enregistrer les paramètres</button></div></form></div>';
+  html+='<div class="card"><h2>Sauvegarde</h2><p class="muted">Exportez vos données pour les conserver ou les importer plus tard dans ce navigateur.</p><button class="button primary" onclick="exportBackup()">Exporter la sauvegarde JSON</button> <label class="button">Importer une sauvegarde<input id="backupFile" type="file" accept=".json,application/json" onchange="importBackup(event)" style="display:none"></label></div>';
+  return html;
+}
+
+function render(){
+  var content=document.getElementById("content");
+  switch(currentPage){
+    case "dashboard":content.innerHTML=dashboardPage();break;
+    case "companies":content.innerHTML=companiesPage();break;
+    case "products":content.innerHTML=productsPage();break;
+    case "sales":content.innerHTML=salesPage();break;
+    case "purchases":content.innerHTML=purchasesPage();break;
+    case "finance":content.innerHTML=financePage();break;
+    case "reports":content.innerHTML=reportsPage();break;
+    case "academy":content.innerHTML=academyPage();break;
+    case "settings":content.innerHTML=settingsPage();break;
+    default:content.innerHTML=dashboardPage();
+  }
+  document.getElementById("breadcrumb").textContent="Espace / "+titles[currentPage];
+  document.querySelectorAll(".sidebar .nav").forEach(function(btn){
+    btn.classList.toggle("active",btn.dataset.page===currentPage);
+  });
+}
+window.go=function(page){currentPage=page;render();window.scrollTo(0,0);};
+window.showForm=function(id){var el=document.getElementById(id);if(el)el.classList.remove("hidden");};
+
+window.addCompany=function(e){
+  e.preventDefault();var f=e.target;
+  var c={id:makeId(),name:f.name.value.trim(),type:f.type.value,currency:f.currency.value,originCountry:f.originCountry.value.trim(),targetCountries:f.targetCountries.value.trim()};
+  if(!c.name)return;
+  state.companies.push(c);
+  if(!state.activeCompany)state.activeCompany=c.id;
+  saveState();render();notify("Entreprise créée.");
+};
+window.selectCompany=function(id){state.activeCompany=id;saveState();render();notify("Entreprise sélectionnée.");};
+window.deleteCompany=function(id){
+  if(!confirm("Supprimer cette entreprise ?"))return;
+  state.companies=state.companies.filter(function(c){return c.id!==id;});
+  if(state.activeCompany===id)state.activeCompany=state.companies.length?state.companies[0].id:"";
+  saveState();render();notify("Supprimée.");
+};
+
+/* SUPPRESSION : une vente supprimée restitue son stock */
+window.deleteItem=function(category,id){
+  if(!confirm("Voulez-vous vraiment supprimer cet élément ?"))return;
+  if(!state[category])return;
+  var item=state[category].find(function(entry){return entry.id===id;});
+  if(!item)return;
+
+  if(category==="sales"&&item.productId){
+    var product=state.products.find(function(p){return p.id===item.productId;});
+    if(product&&product.type!=="Service"){
+      product.stock=number(product.stock)+number(item.qty);
     }
   }
 
-  state[category] = state[category].filter(function (entry) {
-    return entry.id !== id;
-  });
-
-  saveState();
-  render();
-  notify(
-    category === "sales"
-      ? "Vente supprimée et stock rétabli."
-      : "Élément supprimé."
-  );
+  state[category]=state[category].filter(function(entry){return entry.id!==id;});
+  saveState();render();
+  notify(category==="sales"?"Vente supprimée et stock rétabli.":"Élément supprimé.");
 };
+
+window.addProduct=function(e){
+  e.preventDefault();var comp=activeCompany();
+  if(!comp){notify("Sélectionnez une entreprise.");return;}
+  var f=e.target;
+  state.products.push({id:makeId(),companyId:comp.id,name:f.name.value.trim(),type:f.type.value,cost:number(f.cost.value),price:number(f.price.value),stock:number(f.stock.value),currency:f.currency.value});
+  saveState();render();notify("Article enregistré.");
+};
+
+window.addSale=function(e){
+  e.preventDefault();var comp=activeCompany();
+  if(!comp){notify("Sélectionnez une entreprise.");return;}
+  var f=e.target;
+  var prod=state.products.find(function(p){return p.id===f.productId.value;});
+  if(!prod)return;
+  var qty=number(f.qty.value);
+  if(!Number.isInteger(qty)||qty<1){notify("La quantité doit être un entier positif.");return;}
+  if(prod.type!=="Service"&&qty>prod.stock){notify("Stock insuffisant !");return;}
+  var total=convert(prod.price*qty,prod.currency);
+  state.sales.push({id:makeId(),companyId:comp.id,productId:prod.id,name:prod.name,clientName:f.clientName.value.trim()||"Client",qty:qty,total:total,currency:f.currency.value,date:f.date.value,paid:f.paid.value==="true"});
+  if(prod.type!=="Service"){
+    prod.stock-=qty;
+    if(prod.stock<=5)notify("Attention : Stock faible ("+prod.stock+" restants)");
+  }
+  saveState();render();notify("Vente enregistrée.");
+};
+
+window.addPurchase=function(e){
+  e.preventDefault();var comp=activeCompany();
+  if(!comp){notify("Sélectionnez une entreprise.");return;}
+  var f=e.target,prodId=f.productId.value,qty=number(f.qty.value)||1,unitCost=number(f.unitCost.value),total=unitCost*qty,costDiff=0;
+  if(prodId){
+    var prod=state.products.find(function(p){return p.id===prodId;});
+    if(prod){costDiff=unitCost-prod.cost;prod.stock+=qty;prod.cost=unitCost;}
+  }
+  var linked=state.products.find(function(p){return p.id===prodId;});
+  state.purchases.push({id:makeId(),companyId:comp.id,productId:prodId||null,name:f.name.value.trim()+(linked?" ("+linked.name+")":""),qty:qty,unitCost:unitCost,total:total,costDiff:prodId?costDiff:undefined,currency:f.currency.value,date:f.date.value,paid:f.paid.value==="true"});
+  saveState();render();notify("Achat enregistré.");
+};
+
+/* Affiche la quantité uniquement lorsque la nature est Produit */
+window.toggleExpenseQty=function(type){
+  var field=document.getElementById("expenseQtyField");
+  var input=document.getElementById("expenseQty");
+  if(!field||!input)return;
+  var isProduct=type==="Produit";
+  field.style.display=isProduct?"flex":"none";
+  input.required=isProduct;
+  if(!isProduct)input.value="1";
+};
+
+window.addExpense=function(e){
+  e.preventDefault();var comp=activeCompany();
+  if(!comp){notify("Sélectionnez une entreprise.");return;}
+  var f=e.target,type=f.type.value,name=f.name.value.trim(),amount=number(f.amount.value);
+  var qty=type==="Produit"?Number(f.qty.value):null;
+  if(!name){notify("Saisissez un libellé.");return;}
+  if(amount<0){notify("Le montant ne peut pas être négatif.");return;}
+  if(type==="Produit"&&(!Number.isInteger(qty)||qty<1)){
+    notify("Saisissez une quantité entière supérieure à zéro.");return;
+  }
+  state.expenses.push({id:makeId(),companyId:comp.id,type:type,name:name,qty:qty,amount:amount,currency:f.currency.value,date:f.date.value});
+  saveState();render();notify("Dépense enregistrée.");
+};
+
+window.viewInvoice=function(saleId){
+  var sale=state.sales.find(function(s){return s.id===saleId;});
+  if(!sale)return;
+  var comp=activeCompany(),modal=document.getElementById("invoiceModal"),content=document.getElementById("invoiceContent");
+  var vatRate=number(state.vatRate)||20,totalHT=sale.total,vatVal=totalHT*(vatRate/100),totalTTC=totalHT+vatVal;
+  content.innerHTML='<h2>REÇU DE VENTE / FACTURE</h2>'+
+    '<p><strong>Entreprise :</strong> '+escapeHTML(comp?comp.name:"Momo\'s Business")+'</p>'+
+    '<p><strong>Client :</strong> '+escapeHTML(sale.clientName||"Client")+'</p>'+
+    '<p><strong>Date :</strong> '+escapeHTML(sale.date)+'</p>'+
+    '<table><thead><tr><th>Désignation</th><th>Qté</th><th>Montant HT</th></tr></thead><tbody><tr><td>'+escapeHTML(sale.name)+'</td><td>'+sale.qty+'</td><td>'+sale.total.toFixed(2)+' '+sale.currency+'</td></tr></tbody></table>'+
+    '<p style="text-align:right"><strong>Total HT :</strong> '+totalHT.toFixed(2)+' '+sale.currency+'</p>'+
+    '<p style="text-align:right"><strong>TVA ('+vatRate+'%) :</strong> '+vatVal.toFixed(2)+' '+sale.currency+'</p>'+
+    '<p style="text-align:right;font-size:18px;color:#16845b"><strong>Total TTC :</strong> '+totalTTC.toFixed(2)+' '+sale.currency+'</p>'+
+    '<div class="no-print" style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">'+
+    '<button class="button primary" onclick="window.print()">Imprimer / Télécharger PDF</button>'+
+    '<button class="button" onclick="closeInvoice()">Fermer</button></div>';
+  modal.classList.remove("hidden");
+};
+window.closeInvoice=function(){document.getElementById("invoiceModal").classList.add("hidden");};
+
+window.saveSettings=function(e){
+  e.preventDefault();var f=e.target;
+  state.vatRate=number(f.vatRate.value);
+  state.currency=f.currency.value;
+  saveState();render();notify("Paramètres sauvegardés.");
+};
+window.toggleCourse=function(id){
+  var index=state.completedCourses.indexOf(id);
+  if(index===-1)state.completedCourses.push(id);
+  else state.completedCourses.splice(index,1);
+  saveState();render();
+};
+window.exportBackup=function(){
+  var dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(state));
+  var a=document.createElement("a");a.href=dataStr;a.download="backup.json";a.click();
+};
+window.importBackup=function(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{state=JSON.parse(ev.target.result);saveState();render();notify("Import réussi.");}
+    catch(err){notify("Fichier invalide.");}
+  };
+  reader.readAsText(file);
+};
+window.exportCSV=function(){
+  var sales=companyRows("sales");
+  if(!sales.length){notify("Rien à exporter.");return;}
+  var csv="Date;Designation;Client;Qté;Montant HT;Devise;Paiement\n";
+  sales.forEach(function(s){csv+=[s.date,s.name,s.clientName||"Client",s.qty,s.total,s.currency,s.paid?"Payée":"À régler"].join(";")+"\n";});
+  var a=document.createElement("a");
+  a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);a.download="ventes.csv";a.click();
+};
+
+render();
+})();
+</script>
+</body>
+</html>
