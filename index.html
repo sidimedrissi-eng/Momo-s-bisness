@@ -610,17 +610,17 @@ function purchasesPage() {
   var html = pageHead("Achats et réapprovisionnements", "Saisissez vos achats de stock et comparez les évolutions de prix de vos fournisseurs.", '<button class="button primary" onclick="showForm(\'purchaseForm\')">+ Réapprovisionner / Achat</button>');
   html += companyNotice();
   html += '<div class="card hidden" id="purchaseForm"><h2>Enregistrer un achat / Réapprovisionnement</h2><form onsubmit="addPurchase(event)"><div class="form-grid">' +
-    '<div class="field full"><label>Rattacher à un produit du stock (optionnel)</label><select name="productId"><option value="">-- Aucun (Dépense / Fournisseur général) --</option>' +
-    prods.map(function (p) { return '<option value="' + p.id + '">' + escapeHTML(p.name) + ' (Coût actuel: ' + money(p.cost, p.currency) + ')</option>'; }).join("") + '</select></div>' +
+    '<div class="field full"><label>Rattacher à un produit du stock * (Ajoutera la quantité au stock)</label><select name="productId"><option value="">-- Choisir le produit à réapprovisionner --</option>' +
+    prods.map(function (p) { return '<option value="' + p.id + '">' + escapeHTML(p.name) + ' (Stock actuel: ' + p.stock + ' | Coût actuel: ' + money(p.cost, p.currency) + ')</option>'; }).join("") + '</select></div>' +
     '<div class="field"><label>Nom du Fournisseur / Libellé *</label><input name="name" required placeholder="ex: Grossiste ABC"></div>' +
-    '<div class="field"><label>Quantité achetée</label><input name="qty" type="number" min="0" value="1"></div>' +
+    '<div class="field"><label>Quantité achetée à ajouter au stock</label><input name="qty" type="number" min="1" value="1" required></div>' +
     '<div class="field"><label>Nouveau coût unitaire d’achat</label><input name="unitCost" type="number" step="0.01" min="0" value="0" placeholder="Prix unitaire chez ce fournisseur"></div>' +
     '<div class="field"><label>Devise</label><select name="currency">' + currencyOptions(state.currency) + '</select></div>' +
     '<div class="field"><label>Date</label><input name="date" type="date" value="' + new Date().toISOString().slice(0, 10) + '" required></div>' +
     '<div class="field"><label>Paiement</label><select name="paid"><option value="true">Payé</option><option value="false">À régler</option></select></div>' +
-    '</div><div class="form-actions"><button class="button primary">Enregistrer le réapprovisionnement</button></div></form></div>';
+    '</div><div class="form-actions"><button class="button primary">Valider le réapprovisionnement</button></div></form></div>';
 
-  html += '<div class="card">' + table(["Date", "Fournisseur / Produit", "Qté", "Montant total", "Analyse coût / Écart", "Statut", "Actions"], purchases.map(function (p) {
+  html += '<div class="card">' + table(["Date", "Fournisseur / Produit", "Qté ajoutée", "Montant total", "Analyse coût / Écart", "Statut", "Actions"], purchases.map(function (p) {
     var diffHtml = "—";
     if (p.costDiff !== undefined) {
       if (p.costDiff > 0) {
@@ -1001,7 +1001,7 @@ window.addPurchase = function (e) {
       if (!name) name = prod.name;
       costDiff = unitCost - number(prod.cost);
       prod.cost = unitCost;
-      prod.stock += qty;
+      prod.stock += qty; // Le stock est bien augmenté ici
     }
   }
 
@@ -1022,7 +1022,12 @@ window.addPurchase = function (e) {
   state.purchases.push(purchase);
   saveState();
   form.reset();
-  notify("Achat / Réapprovisionnement enregistré.");
+  
+  var msg = "Réapprovisionnement enregistré.";
+  if (prodId) {
+    msg += " Stock mis à jour !";
+  }
+  notify(msg);
   render();
 };
 
