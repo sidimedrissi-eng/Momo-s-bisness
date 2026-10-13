@@ -734,7 +734,7 @@ function reportsPage() {
     var nextAngle = currentAngle + pct;
     var col = colorsSales[idx % colorsSales.length];
     gradSales += col + " " + currentAngle + "% " + nextAngle + "%, ";
-    legendSalesHtml += '<div class="donut-legend-item"><span><span class="legend-dot" style="background:' + col + '"></span>' + escapeHTML(name) + '</span><strong>' + pct.toFixed(1) + '%</strong></div>';
+    legendSalesHtml += '<div class="donut-legend-item"><span><span class="legend-dot" style="background:' + col + '"></span><span style="color:' + col + ';">' + escapeHTML(name) + '</span></span><strong>' + pct.toFixed(1) + '%</strong></div>';
     currentAngle = nextAngle;
     idx++;
   }
@@ -757,7 +757,7 @@ function reportsPage() {
     var nextAngle = currentAngle + pct;
     var col = colorsExp[idx % colorsExp.length];
     gradExp += col + " " + currentAngle + "% " + nextAngle + "%, ";
-    legendExpHtml += '<div class="donut-legend-item"><span><span class="legend-dot" style="background:' + col + '"></span>' + escapeHTML(name) + '</span><strong>' + pct.toFixed(1) + '%</strong></div>';
+    legendExpHtml += '<div class="donut-legend-item"><span><span class="legend-dot" style="background:' + col + '"></span><span style="color:' + col + ';">' + escapeHTML(name) + '</span></span><strong>' + pct.toFixed(1) + '%</strong></div>';
     currentAngle = nextAngle;
     idx++;
   }
@@ -776,7 +776,7 @@ function reportsPage() {
     var nextAngle = currentAngle + pct;
     var col = colorsProd[idx % colorsProd.length];
     gradProd += col + " " + currentAngle + "% " + nextAngle + "%, ";
-    legendProdHtml += '<div class="donut-legend-item"><span><span class="legend-dot" style="background:' + col + '"></span>' + escapeHTML(p.name) + '</span><strong>' + pct.toFixed(1) + '%</strong></div>';
+    legendProdHtml += '<div class="donut-legend-item"><span><span class="legend-dot" style="background:' + col + '"></span><span style="color:' + col + ';">' + escapeHTML(p.name) + '</span></span><strong>' + pct.toFixed(1) + '%</strong></div>';
     currentAngle = nextAngle;
     idx++;
   });
