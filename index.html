@@ -101,17 +101,19 @@ th { background: #161b22; color: var(--muted); text-transform: uppercase; font-s
 .lesson-box { background: #161b22; border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 12px; font-size: 13px; line-height: 1.6; }
 .lesson-box ul { margin: 8px 0; padding-left: 20px; }
 
-/* Graphique en barres (Accueil) */
-.chart-container { position: relative; height: 190px; padding: 15px 5px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
-.chart-group { flex: 1; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 4px; position: relative; }
-.chart-bar { width: 42%; border-radius: 4px 4px 0 0; min-height: 3px; }
-.chart-bar.sales { background: var(--accent-green); }
-.chart-bar.expenses { background: var(--red); }
-.chart-label { position: absolute; bottom: -22px; width: 100%; text-align: center; font-size: 10px; color: var(--muted); }
+/* Graphique combiné professionnel (Barres + Ligne de trésorerie SVG) */
+.chart-box { position: relative; height: 210px; padding: 15px 5px 25px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.chart-col { flex: 1; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px; position: relative; z-index: 2; }
+.c-bar { width: 38%; border-radius: 4px 4px 0 0; min-height: 3px; }
+.c-bar.sales { background: var(--accent-green); }
+.c-bar.expenses { background: var(--red); }
+.c-label { position: absolute; bottom: -24px; width: 100%; text-align: center; font-size: 10px; color: var(--muted); }
+.chart-svg-layer { position: absolute; top: 15px; left: 10px; right: 10px; height: 160px; z-index: 3; pointer-events: none; }
 .chart-legend { display: flex; gap: 16px; font-size: 11px; color: var(--muted); margin-bottom: 8px; align-items: center; }
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+.legend-line { width: 14px; height: 3px; background: #58a6ff; display: inline-block; margin-right: 4px; vertical-align: middle; }
 
-/* Style des Camemberts / Donut Pro */
+/* Camemberts / Donut Pro */
 .donut-card { display: flex; flex-direction: column; align-items: center; text-align: center; }
 .donut-chart {
   width: 130px; height: 130px; border-radius: 50%;
@@ -375,8 +377,10 @@ function dashboardPage() {
   var unpaid = rev - paidRevenue();
   var sales = companyRows("sales").slice().reverse().slice(0, 5);
 
+  // Calcul des données par jour (Dimanche -> Samedi) pour le graphique combiné
   var daysSales = [0, 0, 0, 0, 0, 0, 0];
   var daysExpenses = [0, 0, 0, 0, 0, 0, 0];
+  var daysCash = [0, 0, 0, 0, 0, 0, 0];
 
   companyRows("sales").forEach(function (s) {
     daysSales[new Date(s.date).getDay()] += convert(s.total, s.currency);
@@ -388,21 +392,43 @@ function dashboardPage() {
     if (p.paid) daysExpenses[new Date(p.date).getDay()] += convert(p.total, p.currency);
   });
 
+  // Tendance cumulée de trésorerie simulée sur les 7 jours
+  var runningCash = 0;
+  for(var j=0; j<7; j++) {
+    runningCash += (daysSales[j] - daysExpenses[j]);
+    daysCash[j] = runningCash;
+  }
+
   var maxVal = Math.max.apply(null, daysSales.concat(daysExpenses).concat([1]));
   var labels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
   
+  // Génération des points SVG pour la courbe de trésorerie
+  var svgPoints = [];
+  for (var i = 0; i < 7; i++) {
+    var x = (i / 6) * 100; // pourcentage en largeur
+    // normalisation hauteur SVG (160px max)
+    var yVal = 140 - Math.min(130, Math.max(10, ((daysCash[i] - Math.min.apply(null, daysCash)) / (Math.max.apply(null, daysCash) - Math.min.apply(null, daysCash) || 1)) * 120));
+    svgPoints.push(x + "% " + yVal + "px");
+  }
+
   var chart = '<div class="chart-legend">' +
-    '<span><span class="legend-dot" style="background:var(--accent-green)"></span>Gains (Ventes)</span>' +
+    '<span><span class="legend-dot" style="background:var(--accent-green)"></span>Gains / Ventes</span>' +
     '<span><span class="legend-dot" style="background:var(--red)"></span>Dépenses / Achats</span>' +
-    '</div><div class="chart-container">';
+    '<span><span class="legend-line"></span>Courbe de Trésorerie</span>' +
+    '</div><div class="chart-box">';
+
+  // Tracé SVG de la ligne de tendance
+  chart += '<svg class="chart-svg-layer" viewBox="0 0 100 160" preserveAspectRatio="none">';
+  chart += '<polyline fill="none" stroke="#58a6ff" stroke-width="2.5" points="' + svgPoints.join(", ") + '" />';
+  chart += '</svg>';
 
   for (var i = 0; i < 7; i++) {
-    var hSales = Math.max(3, (daysSales[i] / maxVal) * 150);
-    var hExp = Math.max(3, (daysExpenses[i] / maxVal) * 150);
-    chart += '<div class="chart-group">' +
-      '<div class="chart-bar sales" style="height:' + hSales + 'px;" title="Gains: ' + daysSales[i].toFixed(2) + '"></div>' +
-      '<div class="chart-bar expenses" style="height:' + hExp + 'px;" title="Dépenses: ' + daysExpenses[i].toFixed(2) + '"></div>' +
-      '<div class="chart-label">' + labels[i] + '</div>' +
+    var hSales = Math.max(3, (daysSales[i] / maxVal) * 140);
+    var hExp = Math.max(3, (daysExpenses[i] / maxVal) * 140);
+    chart += '<div class="chart-col">' +
+      '<div class="c-bar sales" style="height:' + hSales + 'px;" title="Gains: ' + daysSales[i].toFixed(2) + '"></div>' +
+      '<div class="c-bar expenses" style="height:' + hExp + 'px;" title="Dépenses: ' + daysExpenses[i].toFixed(2) + '"></div>' +
+      '<div class="c-label">' + labels[i] + '</div>' +
       '</div>';
   }
   chart += '</div>';
@@ -415,7 +441,7 @@ function dashboardPage() {
     metric("Marge brute", comp ? money(margin) : "—", "CA moins coût des articles") +
     metric("À recevoir", comp ? money(unpaid) : "—", "Ventes non payées") + '</div>';
 
-  html += '<div class="grid two-columns"><div class="card"><h2>Performance financière (Gains vs Dépenses)</h2>' + (comp ? chart : empty("Données insuffisantes")) + '</div>' +
+  html += '<div class="grid two-columns"><div class="card"><h2>Graphique Combiné (Gains, Dépenses & Trésorerie)</h2>' + (comp ? chart : empty("Données insuffisantes")) + '</div>' +
     '<div class="card"><h2>Accès rapide</h2>' +
     '<button class="quick-link" onclick="go(\'sales\')"><strong>Nouvelle vente</strong><small>Enregistrer une vente</small></button>' +
     '<button class="quick-link" onclick="go(\'products\')"><strong>Ajouter un article</strong><small>Gérer le catalogue</small></button>' +
@@ -597,7 +623,6 @@ function reportsPage() {
   var rev = totalRevenue(), costs = costOfSales(), exp = totalExpenses();
   var vatAmount = rev * (number(state.vatRate) / 100);
   
-  // Génération dynamique des données pour les 3 Camemberts (Donuts)
   var salesRows = companyRows("sales");
   var expenseRows = companyRows("expenses");
   var productRows = companyRows("products");
