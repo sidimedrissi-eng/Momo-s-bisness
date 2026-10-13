@@ -72,8 +72,19 @@ p { line-height: 1.5; color: var(--text); }
 .metric-value { font-size: 25px; font-weight: bold; margin: 14px 0 8px; color: white; }
 .metric-note { color: var(--muted); font-size: 11px; }
 
-/* TERMINAL PRO */
+/* TERMINAL PRO & LÉGENDE */
 .terminal-layout { display: grid; grid-template-columns: 2.3fr 1fr; gap: 16px; }
+.chart-header-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px; flex-wrap: wrap; gap: 10px;
+}
+.chart-legend {
+  display: flex; gap: 18px; font-size: 12px; color: var(--muted); align-items: center;
+}
+.chart-legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.legend-line { width: 16px; height: 3px; display: inline-block; border-radius: 2px; }
+
 .pro-chart-box {
   position: relative; height: 380px; padding: 25px 15px 35px;
   background: #04060a; border-radius: 8px; border: 1px solid var(--border);
@@ -108,14 +119,6 @@ p { line-height: 1.5; color: var(--text); }
 .status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
 .status-dot.green { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
 .status-dot.red { background: var(--red); box-shadow: 0 0 8px var(--red); }
-
-.quick-link {
-  display: block; text-align: left; width: 100%; background: #161b22;
-  border: 1px solid var(--border); border-radius: 9px; padding: 14px; margin: 8px 0; color: var(--text);
-}
-.quick-link:hover { border-color: var(--green); background: #21262d; }
-.quick-link strong { display: block; color: white; }
-.quick-link small { color: var(--muted); display: block; margin-top: 5px; }
 
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 13px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text); }
@@ -424,25 +427,29 @@ function dashboardPage() {
   var maxVal = Math.max.apply(null, daysSales.concat(daysExpenses).concat([1]));
   var labels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
   
+  var minCash = Math.min.apply(null, daysCash);
+  var maxCash = Math.max.apply(null, daysCash);
+  var cashSpread = (maxCash - minCash) || 1;
+
   var svgPoints = [];
   for (var i = 0; i < 7; i++) {
     var x = (i / 6) * 100;
-    var yVal = 290 - Math.min(270, Math.max(20, ((daysCash[i] - Math.min.apply(null, daysCash)) / (Math.max.apply(null, daysCash) - Math.min.apply(null, daysCash) || 1)) * 250));
+    var yVal = 290 - Math.min(270, Math.max(20, ((daysCash[i] - minCash) / cashSpread) * 250));
     svgPoints.push(x + "% " + yVal + "px");
   }
 
-  var chart = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
-    '<div class="chart-legend" style="margin:0;">' +
-    '<span><span class="legend-dot" style="background:var(--accent-green)"></span>Bougies Gains</span>' +
-    '<span><span class="legend-dot" style="background:var(--red)"></span>Bougies Pertes</span>' +
-    '<span><span class="legend-line" style="background:#58a6ff;"></span>Moyenne Trésorerie</span>' +
-    '</div><small style="color:var(--muted)">Passez la souris sur une bougie pour les détails</small></div>';
+  var chart = '<div class="chart-header-bar">' +
+    '<div class="chart-legend">' +
+    '<div class="chart-legend-item"><span class="legend-dot" style="background:var(--accent-green)"></span><span>Bougies Gains</span></div>' +
+    '<div class="chart-legend-item"><span class="legend-dot" style="background:var(--red)"></span><span>Bougies Pertes</span></div>' +
+    '<div class="chart-legend-item"><span class="legend-line" style="background:#58a6ff;"></span><span>Moyenne Trésorerie</span></div>' +
+    '</div><small style="color:var(--muted)">Survolez une bougie pour voir les détails (CA, Charges, Marge)</small></div>';
 
   chart += '<div class="terminal-layout"><div class="pro-chart-box">';
 
   chart += '<div class="level-line resistance"><span class="level-tag">R : Cible CA</span></div>';
   chart += '<div class="level-line support"><span class="level-tag">S : Seuil Critique</span></div>';
-  chart += '<div class="event-line-v" style="left: 50%;"></div><div class="event-tag-v" style="left: 50%;">⚡ Vente / Stock</div>';
+  chart += '<div class="event-line-v" style="left: 50%;"></div><div class="event-tag-v" style="left: 50%;">⚡ Flux actif</div>';
 
   chart += '<svg class="svg-trend-layer" viewBox="0 0 100 320" preserveAspectRatio="none">';
   chart += '<polyline fill="none" stroke="#58a6ff" stroke-width="2.5" points="' + svgPoints.join(", ") + '" />';
@@ -454,11 +461,11 @@ function dashboardPage() {
     var hBody = Math.max(6, (Math.abs(daysSales[i] - daysExpenses[i]) / maxVal) * 260);
     var hWick = Math.max(12, (mainVal / maxVal) * 280);
     var dayMargin = daysSales[i] - daysExpenses[i];
-    var tooltipText = labels[i] + " — CA: " + daysSales[i].toFixed(2) + " | Charges: " + daysExpenses[i].toFixed(2) + " | Marge/Net: " + dayMargin.toFixed(2);
+    var tooltipText = labels[i] + " — CA: " + daysSales[i].toFixed(2) + " | Charges: " + daysExpenses[i].toFixed(2) + " | Marge/Net: " + dayMargin.toFixed(2) + " | Trésorerie Cumulée: " + daysCash[i].toFixed(2);
 
     chart += '<div class="candle-col" title="' + tooltipText + '">' +
-      '<div class="candle-wick" style="height:' + hWick + 'px; bottom: 30px;"></div>' +
-      '<div class="candle-body ' + (isGain ? 'gain' : 'loss') + '" style="height:' + hBody + 'px; bottom: ' + (30 + (Math.min(daysSales[i], daysExpenses[i])/maxVal)*240) + 'px;"></div>' +
+      '<div class="candle-wick" style="height:' + hWick + 'px; bottom: 30px;" title="' + tooltipText + '"></div>' +
+      '<div class="candle-body ' + (isGain ? 'gain' : 'loss') + '" style="height:' + hBody + 'px; bottom: ' + (30 + (Math.min(daysSales[i], daysExpenses[i])/maxVal)*240) + 'px;" title="' + tooltipText + '"></div>' +
       '<div class="candle-label">' + labels[i] + '</div>' +
       '</div>';
   }
@@ -629,7 +636,7 @@ window.toggleSaleFields = function() {
     fQty.classList.remove("hidden");
     fAmt.classList.add("hidden");
   } else if (type === "solde") {
-    fProd.classList.remove("hidden"); // Sélection du produit à solder
+    fProd.classList.remove("hidden");
     fCust.classList.add("hidden");
     fDiscType.classList.remove("hidden");
     if (discMode === "percent") {
@@ -1176,3 +1183,38 @@ window.go = function (page) {
     } else {
       buttons[i].classList.remove("active");
     }
+  }
+  document.getElementById("breadcrumb").textContent = "Espace de travail / " + (titles[page] || page);
+  render();
+};
+
+function render() {
+  var contentEl = document.getElementById("content");
+  if (!contentEl) return;
+  var html = "";
+  if (currentPage === "dashboard") html = dashboardPage();
+  else if (currentPage === "companies") html = companiesPage();
+  else if (currentPage === "products") html = productsPage();
+  else if (currentPage === "sales") html = salesPage();
+  else if (currentPage === "purchases") html = purchasesPage();
+  else if (currentPage === "finance") html = financePage();
+  else if (currentPage === "reports") html = reportsPage();
+  else if (currentPage === "academy") html = academyPage();
+  else if (currentPage === "settings") {
+    html = pageHead("Paramètres", "Configuration globale de l'application.") +
+      '<div class="card"><h2>Options générales</h2>' +
+      '<p class="muted">Devise de référence, taux de TVA et gestion des données locales.</p>' +
+      '<button class="button danger" onclick="if(confirm(\'Tout effacer ?\')){localStorage.removeItem(\'momosBusiness\');location.reload();}">Réinitialiser toutes les données</button></div>';
+  }
+  contentEl.innerHTML = html;
+}
+
+if (!state.activeCompany && state.companies.length > 0) {
+  state.activeCompany = state.companies[0].id;
+}
+render();
+
+})();
+</script>
+</body>
+</html>
