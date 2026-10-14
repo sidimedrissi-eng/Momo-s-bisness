@@ -391,46 +391,86 @@ function dashboardPage() {
   var unpaid = rev - paidRevenue();
   var sales = companyRows("sales").slice().reverse().slice(0, 5);
 
-  var daysSales = [0, 0, 0, 0, 0, 0, 0];
-  var daysExpenses = [0, 0, 0, 0, 0, 0, 0];
-  var daysCash = [0, 0, 0, 0, 0, 0, 0];
+  // Graphique basé sur les 7 dernières dates calendaires (et non les jours de semaine cumulés).
+  // La trésorerie de départ reprend les mouvements antérieurs à cette période.
+  var chartDays = [];
+  var dayMap = {};
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  for (var j = 6; j >= 0; j--) {
+    var dateObj = new Date(today);
+    dateObj.setDate(today.getDate() - j);
+    var key = dateObj.getFullYear() + "-" +
+      String(dateObj.getMonth() + 1).padStart(2, "0") + "-" +
+      String(dateObj.getDate()).padStart(2, "0");
+    chartDays.push({
+      key: key,
+      label: dateObj.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
+      sale: 0,
+      exp: 0,
+      net: 0,
+      open: 0,
+      close: 0
+    });
+    dayMap[key] = chartDays[chartDays.length - 1];
+  }
+  var firstKey = chartDays[0].key;
+  var openingCash = 0;
 
-  companyRows("sales").forEach(function (s) {
-    var d = new Date(s.date).getDay();
-    daysSales[d] += convert(s.total, s.currency);
+  companyRows("sales").forEach(function (sale) {
+    var amount = sale.paid ? convert(sale.total, sale.currency) : 0;
+    if (sale.date < firstKey) openingCash += amount;
+    else if (dayMap[sale.date]) dayMap[sale.date].sale += amount;
   });
-  companyRows("purchases").forEach(function (p) {
-    var d = new Date(p.date).getDay();
-    if (p.paid) daysExpenses[d] += convert(p.total, p.currency);
+  companyRows("purchases").forEach(function (purchase) {
+    var amount = purchase.paid ? convert(purchase.total, purchase.currency) : 0;
+    if (purchase.date < firstKey) openingCash -= amount;
+    else if (dayMap[purchase.date]) dayMap[purchase.date].exp += amount;
   });
-  companyRows("expenses").forEach(function (e) {
-    daysExpenses[new Date(e.date).getDay()] += convert(e.amount, e.currency);
+  companyRows("expenses").forEach(function (expense) {
+    var amount = convert(expense.amount, expense.currency);
+    if (expense.date < firstKey) openingCash -= amount;
+    else if (dayMap[expense.date]) dayMap[expense.date].exp += amount;
   });
 
-  var runningCash = 0;
-  var labels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+  var runningCash = openingCash;
+  var labels = [];
+  var daysSales = [];
+  var daysExpenses = [];
+  var daysCash = [];
   var candleData = [];
-  for (var j = 0; j < 7; j++) {
-    var dailyNet = daysSales[j] - daysExpenses[j];
-    var openCash = runningCash;
-    var closeCash = openCash + dailyNet;
-    candleData.push({ open: openCash, close: closeCash, net: dailyNet });
-    runningCash = closeCash;
-    daysCash[j] = closeCash;
-  }
+  chartDays.forEach(function (day) {
+    day.net = day.sale - day.exp;
+    day.open = runningCash;
+    day.close = runningCash + day.net;
+    runningCash = day.close;
+    labels.push(day.label);
+    daysSales.push(day.sale);
+    daysExpenses.push(day.exp);
+    daysCash.push(day.close);
+    candleData.push({ open: day.open, close: day.close, net: day.net });
+  });
 
-  var minCash = 0;
-  var maxCash = 0;
-  for (var i = 0; i < candleData.length; i++) {
-    minCash = Math.min(minCash, candleData[i].open, candleData[i].close);
-    maxCash = Math.max(maxCash, candleData[i].open, candleData[i].close);
+  var minCash = Math.min.apply(null, chartDays.map(function (day) {
+    return Math.min(day.open, day.close);
+  }));
+  var maxCash = Math.max.apply(null, chartDays.map(function (day) {
+    return Math.max(day.open, day.close);
+  }));
+  if (maxCash === minCash) {
+    var paddingCash = Math.max(1, Math.abs(maxCash) * 0.02);
+    minCash -= paddingCash;
+    maxCash += paddingCash;
+  } else {
+    var rangePadding = (maxCash - minCash) * 0.08;
+    minCash -= rangePadding;
+    maxCash += rangePadding;
   }
-  if (maxCash === minCash) { maxCash = minCash + 1; }
   var cashSpread = maxCash - minCash;
   var chartTop = 22;
   var chartBottom = 300;
   var chartHeight = chartBottom - chartTop;
-  var yForCash = function(value) {
+  var yForCash = function (value) {
     return chartBottom - ((value - minCash) / cashSpread) * chartHeight;
   };
   var svgPoints = [];
@@ -440,9 +480,8 @@ function dashboardPage() {
     var openY = yForCash(candleData[i].open);
     var closeY = yForCash(candleData[i].close);
     var topY = Math.min(openY, closeY);
-    var bodyHeight = Math.max(5, Math.abs(closeY - openY));
+    var bodyHeight = Math.max(3, Math.abs(closeY - openY));
     var color = candleData[i].close >= candleData[i].open ? '#26a69a' : '#ef5350';
-    var centerY = (openY + closeY) / 2;
     var wickTop = Math.max(chartTop, Math.min(openY, closeY) - 8);
     var wickBottom = Math.min(chartBottom, Math.max(openY, closeY) + 8);
     candleSvg += '<line x1="' + x.toFixed(2) + '" y1="' + wickTop.toFixed(2) + '" x2="' + x.toFixed(2) + '" y2="' + wickBottom.toFixed(2) + '" stroke="' + color + '" stroke-width="2" />';
@@ -454,8 +493,8 @@ function dashboardPage() {
   var stepY = (yMaxVal - yMinVal) / 3;
 
   var chart = '<div class="chart-header-bar">' +
-    '<div class="ohlc-info" id="ohlcBarInfo"><span>Trésorerie Momo\'s Business — <i>Survolez une bougie pour voir les détails · ligne Attente = trésorerie de la veille</i></span></div>' +
-    '<small style="color:var(--muted)">Terminal Pro</small></div>';
+    '<div class="ohlc-info" id="ohlcBarInfo"><span>Trésorerie Momo\'s Business — <i>Survolez un jour pour voir les détails · ligne Attente = trésorerie de la veille</i></span></div>' +
+    '<small style="color:var(--muted)">7 derniers jours</small></div>';
 
   chart += '<div class="terminal-layout"><div class="pro-chart-box" id="proChartBox">';
   chart += '<div class="price-axis-right">' +
@@ -465,15 +504,14 @@ function dashboardPage() {
     '<span>' + yMinVal.toFixed(0) + '</span>' +
     '</div>';
 
-  // La ligne « Attente » représente le niveau de trésorerie de la veille.
-  // Elle reste affichée même le jour même : elle ne dépend pas d'une date future.
-  var attenteValue = candleData.length > 1 ? candleData[candleData.length - 2].close : candleData[0].open;
+  // Ligne horizontale persistante : trésorerie à la clôture de la veille.
+  var attenteValue = chartDays.length > 1 ? chartDays[chartDays.length - 2].close : chartDays[0].open;
   var attenteY = yForCash(attenteValue);
 
   chart += '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:0 0 8px 2px;">' +
     '<span><span style="display:inline-block;width:18px;border-top:2px solid var(--accent-green);vertical-align:middle;margin-right:5px;"></span>Trésorerie</span>' +
-    '<span><span style="display:inline-block;width:18px;border-top:2px dashed #f0b429;vertical-align:middle;margin-right:5px;"></span>Attente (niveau de la veille)</span></div>';
-  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none" role="img" aria-label="Trésorerie, bougies quotidiennes et ligne Attente basée sur la veille">';
+    '<span><span style="display:inline-block;width:18px;border-top:2px dashed #f0b429;vertical-align:middle;margin-right:5px;"></span>Attente (trésorerie de la veille)</span></div>';
+  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none" role="img" aria-label="Trésorerie des sept dernières dates et ligne Attente basée sur la veille">';
   chart += '<line x1="35" y1="' + attenteY.toFixed(2) + '" x2="565" y2="' + attenteY.toFixed(2) + '" stroke="#f0b429" stroke-width="2" stroke-dasharray="8 6" opacity="0.95" />';
   chart += '<polyline fill="none" stroke="var(--accent-green)" stroke-width="2.5" opacity="0.95" points="' + svgPoints.join(' ') + '" />';
   chart += candleSvg;
@@ -1212,12 +1250,15 @@ function setupChartInteractivity() {
       var sale = col.getAttribute("data-sale");
       var exp = col.getAttribute("data-exp");
       var cash = col.getAttribute("data-cash");
+      var net = Number(col.getAttribute("data-net") || 0);
+      var netClass = net >= 0 ? "text-green" : "text-red";
 
-      infoBar.innerHTML = 
-        '<span>Jour: <strong style="color:white;">' + day + '</strong></span>' +
-        '<span>Ventes: <strong class="text-green">' + sale + '</strong></span>' +
-        '<span>Dépenses: <strong class="text-red">' + exp + '</strong></span>' +
-        '<span>Tréso: <strong style="color:white;">' + cash + '</strong></span>';
+      infoBar.innerHTML =
+        '<span>Date: <strong style="color:white;">' + day + '</strong></span>' +
+        '<span>Ventes encaissées: <strong class="text-green">' + sale + '</strong></span>' +
+        '<span>Sorties: <strong class="text-red">' + exp + '</strong></span>' +
+        '<span>Variation: <strong class="' + netClass + '">' + (net > 0 ? "+" : "") + net.toFixed(2) + '</strong></span>' +
+        '<span>Trésorerie: <strong style="color:white;">' + cash + '</strong></span>';
     });
 
     col.addEventListener("mouseleave", function() {
