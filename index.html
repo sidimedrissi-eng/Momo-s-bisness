@@ -99,6 +99,7 @@ p { line-height: 1.5; color: var(--text); }
 }
 
 .svg-trend-layer { position:absolute; top:20px; left:20px; right:60px; width:calc(100% - 80px); height:330px; z-index:4; pointer-events:none; overflow:visible; }
+.candle-col { min-width:0; }
 
 .feed-sidebar { background: #131722; border: 1px solid var(--border); border-radius: 8px; padding: 16px; max-height: 420px; overflow-y: auto; }
 .feed-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 12px; }
@@ -407,43 +408,56 @@ function dashboardPage() {
   });
 
   var runningCash = 0;
-  for(var j=0; j<7; j++) {
-    runningCash += (daysSales[j] - daysExpenses[j]);
-    daysCash[j] = runningCash;
-  }
-
   var labels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-  var minCash = Math.min.apply(null, daysCash);
-  var maxCash = Math.max.apply(null, daysCash);
-  var cashSpread = (maxCash - minCash) || 1;
+  var candleData = [];
+  for (var j = 0; j < 7; j++) {
+    var dailyNet = daysSales[j] - daysExpenses[j];
+    var openCash = runningCash;
+    var closeCash = openCash + dailyNet;
+    candleData.push({ open: openCash, close: closeCash, net: dailyNet });
+    runningCash = closeCash;
+    daysCash[j] = closeCash;
+  }
 
+  var minCash = 0;
+  var maxCash = 0;
+  for (var i = 0; i < candleData.length; i++) {
+    minCash = Math.min(minCash, candleData[i].open, candleData[i].close);
+    maxCash = Math.max(maxCash, candleData[i].open, candleData[i].close);
+  }
+  if (maxCash === minCash) { maxCash = minCash + 1; }
+  var cashSpread = maxCash - minCash;
+  var chartTop = 22;
+  var chartBottom = 300;
+  var chartHeight = chartBottom - chartTop;
+  var yForCash = function(value) {
+    return chartBottom - ((value - minCash) / cashSpread) * chartHeight;
+  };
   var svgPoints = [];
-  var areaPoints = ["0,330"];
-  var dailyValues = [];
-  var dailyScale = 1;
+  var candleSvg = '';
   for (var i = 0; i < 7; i++) {
-    dailyValues[i] = daysSales[i] - daysExpenses[i];
-    dailyScale = Math.max(dailyScale, Math.abs(dailyValues[i]));
+    var x = 50 + i * (500 / 6);
+    var openY = yForCash(candleData[i].open);
+    var closeY = yForCash(candleData[i].close);
+    var topY = Math.min(openY, closeY);
+    var bodyHeight = Math.max(5, Math.abs(closeY - openY));
+    var color = candleData[i].close >= candleData[i].open ? '#26a69a' : '#ef5350';
+    var centerY = (openY + closeY) / 2;
+    var wickTop = Math.max(chartTop, Math.min(openY, closeY) - 8);
+    var wickBottom = Math.min(chartBottom, Math.max(openY, closeY) + 8);
+    candleSvg += '<line x1="' + x.toFixed(2) + '" y1="' + wickTop.toFixed(2) + '" x2="' + x.toFixed(2) + '" y2="' + wickBottom.toFixed(2) + '" stroke="' + color + '" stroke-width="2" />';
+    candleSvg += '<rect x="' + (x - 8).toFixed(2) + '" y="' + Math.max(chartTop, topY).toFixed(2) + '" width="16" height="' + bodyHeight.toFixed(2) + '" rx="2" fill="' + color + '" stroke="' + color + '" stroke-width="1" />';
+    svgPoints.push(x.toFixed(2) + ',' + closeY.toFixed(2));
   }
-  for (var i = 0; i < 7; i++) {
-    var x = (i / 6) * 600;
-    var y = 300 - ((daysCash[i] - minCash) / cashSpread) * 260;
-    y = Math.max(20, Math.min(300, y));
-    svgPoints.push(x.toFixed(2) + "," + y.toFixed(2));
-    areaPoints.push(x.toFixed(2) + "," + y.toFixed(2));
-  }
-  areaPoints.push("600,330");
-
-  var yMaxVal = Math.max(maxCash, 100);
-  var yMinVal = Math.min(minCash, 0);
+  var yMaxVal = maxCash;
+  var yMinVal = minCash;
   var stepY = (yMaxVal - yMinVal) / 3;
 
   var chart = '<div class="chart-header-bar">' +
-    '<div class="ohlc-info" id="ohlcBarInfo"><span>Trésorerie Momo\'s Business — <i>Survolez un jour pour voir les détails</i></span></div>' +
+    '<div class="ohlc-info" id="ohlcBarInfo"><span>Trésorerie Momo\'s Business — <i>Survolez une bougie pour voir les détails</i></span></div>' +
     '<small style="color:var(--muted)">Terminal Pro</small></div>';
 
   chart += '<div class="terminal-layout"><div class="pro-chart-box" id="proChartBox">';
-
   chart += '<div class="price-axis-right">' +
     '<span>' + yMaxVal.toFixed(0) + '</span>' +
     '<span>' + (yMinVal + stepY * 2).toFixed(0) + '</span>' +
@@ -451,19 +465,13 @@ function dashboardPage() {
     '<span>' + yMinVal.toFixed(0) + '</span>' +
     '</div>';
 
-  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none">';
-  chart += '<defs><linearGradient id="cashGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#16845b44"/><stop offset="100%" stop-color="#16845b00"/></linearGradient></defs>';
-  chart += '<polygon fill="url(#cashGrad)" points="' + areaPoints.join(", ") + '" />';
-  chart += '<polyline fill="none" stroke="var(--accent-green)" stroke-width="2.5" points="' + svgPoints.join(", ") + '" />';
+  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none" role="img" aria-label="Bougies quotidiennes de trésorerie">';
+  chart += '<polyline fill="none" stroke="var(--accent-green)" stroke-width="2" opacity="0.75" points="' + svgPoints.join(' ') + '" />';
+  chart += candleSvg;
   chart += '</svg>';
 
   for (var i = 0; i < 7; i++) {
-    var daily = daysSales[i] - daysExpenses[i];
-    var candleHeight = Math.max(4, Math.min(120, Math.abs(daily) / dailyScale * 120));
-    var candleColor = daily >= 0 ? '#26a69a' : '#ef5350';
-    var candleTop = daily >= 0 ? (165 - candleHeight) : 165;
-    chart += '<div class="candle-col" data-day="' + labels[i] + '" data-sale="' + daysSales[i].toFixed(2) + '" data-exp="' + daysExpenses[i].toFixed(2) + '" data-cash="' + daysCash[i].toFixed(2) + '" style="display:block;height:100%;flex:1;position:relative;cursor:pointer;z-index:5;">' +
-      '<div style="position:absolute;left:50%;top:' + (candleTop - 12) + 'px;transform:translateX(-50%);width:12px;height:' + candleHeight + 'px;min-height:4px;background:' + candleColor + ';border-radius:2px;box-shadow:0 0 0 1px ' + candleColor + ';" title="' + labels[i] + ' : ' + daily.toFixed(2) + '"></div>' +
+    chart += '<div class="candle-col" data-day="' + labels[i] + '" data-sale="' + daysSales[i].toFixed(2) + '" data-exp="' + daysExpenses[i].toFixed(2) + '" data-cash="' + daysCash[i].toFixed(2) + '" data-open="' + candleData[i].open.toFixed(2) + '" data-net="' + candleData[i].net.toFixed(2) + '" style="display:block;height:100%;flex:1;position:relative;cursor:pointer;z-index:5;">' +
       '<div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted);font-family:monospace;">' + labels[i] + '</div>' +
       '</div>';
   }
