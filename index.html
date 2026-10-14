@@ -454,7 +454,7 @@ function dashboardPage() {
   var stepY = (yMaxVal - yMinVal) / 3;
 
   var chart = '<div class="chart-header-bar">' +
-    '<div class="ohlc-info" id="ohlcBarInfo"><span>Trésorerie Momo\'s Business — <i>Survolez une bougie pour voir les détails</i></span></div>' +
+    '<div class="ohlc-info" id="ohlcBarInfo"><span>Trésorerie Momo\'s Business — <i>Survolez une bougie pour voir les détails · ligne Attente = trésorerie de la veille</i></span></div>' +
     '<small style="color:var(--muted)">Terminal Pro</small></div>';
 
   chart += '<div class="terminal-layout"><div class="pro-chart-box" id="proChartBox">';
@@ -465,8 +465,17 @@ function dashboardPage() {
     '<span>' + yMinVal.toFixed(0) + '</span>' +
     '</div>';
 
-  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none" role="img" aria-label="Bougies quotidiennes de trésorerie">';
-  chart += '<polyline fill="none" stroke="var(--accent-green)" stroke-width="2" opacity="0.75" points="' + svgPoints.join(' ') + '" />';
+  // La ligne « Attente » représente le niveau de trésorerie de la veille.
+  // Elle reste affichée même le jour même : elle ne dépend pas d'une date future.
+  var attenteValue = candleData.length > 1 ? candleData[candleData.length - 2].close : candleData[0].open;
+  var attenteY = yForCash(attenteValue);
+
+  chart += '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:0 0 8px 2px;">' +
+    '<span><span style="display:inline-block;width:18px;border-top:2px solid var(--accent-green);vertical-align:middle;margin-right:5px;"></span>Trésorerie</span>' +
+    '<span><span style="display:inline-block;width:18px;border-top:2px dashed #f0b429;vertical-align:middle;margin-right:5px;"></span>Attente (niveau de la veille)</span></div>';
+  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none" role="img" aria-label="Trésorerie, bougies quotidiennes et ligne Attente basée sur la veille">';
+  chart += '<line x1="35" y1="' + attenteY.toFixed(2) + '" x2="565" y2="' + attenteY.toFixed(2) + '" stroke="#f0b429" stroke-width="2" stroke-dasharray="8 6" opacity="0.95" />';
+  chart += '<polyline fill="none" stroke="var(--accent-green)" stroke-width="2.5" opacity="0.95" points="' + svgPoints.join(' ') + '" />';
   chart += candleSvg;
   chart += '</svg>';
 
