@@ -485,18 +485,27 @@ function dashboardPage() {
   var svgPoints = [];
   var candleSvg = '';
   // Les bougies montrent les mouvements du jour autour d'une base commune :
-  // vert = ventes vers le haut, rouge = sorties vers le bas. Elles sont légèrement décalées.
-  // La ligne turquoise reste sur sa propre échelle et représente la trésorerie de clôture.
+  // vert = ventes vers le haut, rouge = sorties vers le bas, légèrement décalées.
+  // La ligne turquoise montre le cumul net de la période : ventes - sorties.
   var pointSpacing = 530 / Math.max(1, chartDays.length - 1);
   var candleWidth = Math.max(1, Math.min(10, pointSpacing * 0.30));
   var maxMovement = 1;
-  chartDays.forEach(function(day) { maxMovement = Math.max(maxMovement, day.sale, day.exp); });
+  var cumulativeNetValues = [];
+  var runningNetForScale = 0;
+  var maxAbsCumulativeNet = 1;
+  chartDays.forEach(function(day) {
+    maxMovement = Math.max(maxMovement, day.sale, day.exp);
+    runningNetForScale += day.net;
+    cumulativeNetValues.push(runningNetForScale);
+    maxAbsCumulativeNet = Math.max(maxAbsCumulativeNet, Math.abs(runningNetForScale));
+  });
   var zeroY = 165;
   var movementHeight = 125;
   for (var i = 0; i < chartDays.length; i++) {
     var x = 35 + i * pointSpacing;
     var day = chartDays[i];
-    var closeY = yForCash(day.close);
+    // Positif = au-dessus du zéro, négatif = en dessous.
+    var closeY = zeroY - (cumulativeNetValues[i] / maxAbsCumulativeNet) * movementHeight;
     // Ventes : la bougie verte part de zéro et monte.
     if (day.sale > 0) {
       var greenHeight = Math.max(2, (day.sale / maxMovement) * movementHeight);
@@ -535,9 +544,9 @@ function dashboardPage() {
     '<span>' + yMinVal.toFixed(0) + '</span>' +
     '</div>';
 
-  // Ligne horizontale persistante : trésorerie à la clôture de la veille.
-  var attenteValue = chartDays.length > 1 ? chartDays[chartDays.length - 2].close : chartDays[0].open;
-  var attenteY = yForCash(attenteValue);
+  // Ligne d'attente : cumul net à la clôture de la veille, sur la même échelle que la ligne turquoise.
+  var attenteValue = chartDays.length > 1 ? cumulativeNetValues[chartDays.length - 2] : 0;
+  var attenteY = 165 - (attenteValue / maxAbsCumulativeNet) * 125;
 
   chart += '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:0 0 8px 2px;">' +
     '<span><span style="display:inline-block;width:18px;border-top:2px solid var(--accent-green);vertical-align:middle;margin-right:5px;"></span>Trésorerie nette (clôture)</span>' +
@@ -558,7 +567,7 @@ function dashboardPage() {
     var hitLeftPercent = (hitX / 600) * 100;
     var showDateLabel = (i % labelEvery === 0) || i === chartDays.length - 1;
     var dateLabelHtml = showDateLabel ? '<div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted);font-family:monospace;white-space:nowrap;">' + labels[i] + '</div>' : '';
-    chart += '<div class="candle-col" data-day="' + labels[i] + '" data-sale="' + daysSales[i].toFixed(2) + '" data-exp="' + daysExpenses[i].toFixed(2) + '" data-cash="' + daysCash[i].toFixed(2) + '" data-open="' + candleData[i].open.toFixed(2) + '" data-net="' + candleData[i].net.toFixed(2) + '" style="display:block;height:100%;width:' + Math.max(1.2, (530 / 600 / chartDays.length) * 100).toFixed(4) + '%;position:absolute;left:' + hitLeftPercent.toFixed(4) + '%;top:0;transform:translateX(-50%);cursor:crosshair;z-index:5;">' + dateLabelHtml + '</div>';
+    chart += '<div class="candle-col" data-day="' + labels[i] + '" data-sale="' + daysSales[i].toFixed(2) + '" data-exp="' + daysExpenses[i].toFixed(2) + '" data-cash="' + daysCash[i].toFixed(2) + '" data-net-cumulative="' + cumulativeNetValues[i].toFixed(2) + '" data-open="' + candleData[i].open.toFixed(2) + '" data-net="' + candleData[i].net.toFixed(2) + '" style="display:block;height:100%;width:' + Math.max(1.2, (530 / 600 / chartDays.length) * 100).toFixed(4) + '%;position:absolute;left:' + hitLeftPercent.toFixed(4) + '%;top:0;transform:translateX(-50%);cursor:crosshair;z-index:5;">' + dateLabelHtml + '</div>';
   }
   chart += '</div></div>';
 
