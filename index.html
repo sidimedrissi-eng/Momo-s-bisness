@@ -1,3 +1,105 @@
+
+Chargement des messages plus anciens…
+Pièce jointe utilisateur
+Pièce jointe utilisateur
+enfeite je ois mettre la souris un  à droite pour "toucher" la bougie alors que je ne la touche pas
+
+
+Texte collé(5).txt
+Document
+nn c'est bien plus à droite !!!
+
+mais ne me fais pas d'image change le code :
+
+Réfléchi pendant 35s
+
+C’est corrigé ! J’ai modifié le code pour que les informations apparaissent uniquement lorsque ta souris est réellement proche d’une bougie, et non plusieurs centimètres à droite.
+
+Momo’s Business — code corrigé (.txt)
+
+Fichier texte complet pour remplacer le code de ton site.
+
+📄 Télécharger le fichier texte
+
+Version HTML
+
+Le fichier prêt à être utilisé comme index.html.
+
+🌐 Télécharger le fichier HTML
+
+Pour mettre à jour ton site GitHub : ouvre index.html, remplace son contenu par celui du fichier corrigé, puis valide avec Commit changes.
+
+J’ai conservé les autres fonctionnalités du code fourni et vérifié la syntaxe JavaScript. Pense à garder une copie de ton ancien fichier avant de le remplacer.
+
+Pièce jointe utilisateur
+ça marche mais T sur que les dat sont bien et il y a PAS LE FILTRE !!!
+
+Réfléchi pendant 36s
+Tu as raison : les filtres manquaient. Je les ai ajoutés au code, avec quatre périodes sélectionnables. J’ai également vérifié la syntaxe JavaScript.
+
+Voici les deux fichiers complets :
+
+Fichier texte (.txt)
+
+📄 Télécharger le code complet
+
+Fichier HTML
+
+🌐 Télécharger la version HTML
+
+Les filtres ajoutés sont :
+
+7 jours
+
+1 mois (30 jours)
+
+3 mois (90 jours)
+
+1 an (365 jours)
+
+Et les données, sont-elles correctes ?
+Le graphique calcule la trésorerie à partir des opérations enregistrées : ventes encaissées, achats payés et dépenses. Je ne peux toutefois pas garantir que les montants correspondent à ta trésorerie réelle sans vérifier tes opérations. Les filtres affichent les périodes choisies, mais il faudra encore tester leur rendu dans ton site.
+
+Avant de remplacer index.html sur GitHub, conserve une copie de l’ancien fichier. Les données locales de ton navigateur ne sont pas incluses dans ce code.
+
+t'a corriger les date
+
+Réfléchi pendant 7s
+Partiellement. Dans le dernier fichier, j’ai corrigé la génération des dates du graphique pour afficher les jours calendaires, mais je ne peux pas encore garantir que toutes les dates des opérations sont correctes.
+
+Le graphique doit respecter ces règles :
+
+7 jours : les 7 dernières dates, avec la date du jour.
+
+1 mois : les 30 derniers jours.
+
+3 mois : les 90 derniers jours.
+
+1 an : les 365 derniers jours.
+
+Chaque vente, achat ou dépense doit apparaître à sa vraie date, sans décalage d’un jour.
+
+Je préfère être honnête : je n’ai pas encore validé ces quatre périodes avec tes données réelles. Le dernier fichier ne doit donc pas être considéré comme une correction définitive des dates.
+
+mais nn dans l'amage que j'ai mmis les date ne sont pas bien aligner
+
+Réfléchi pendant 44s
+Ah, je comprends : sur ta capture, les dates sous les bougies ne sont pas alignées avec les bougies correspondantes. J’ai corrigé leur positionnement dans le code, sans créer d’image.
+
+Voici les deux fichiers mis à jour :
+
+Fichier texte (.txt)
+
+📄 Télécharger le code complet corrigé
+
+Fichier HTML
+
+🌐 Télécharger la version HTML corrigée
+
+J’ai vérifié la syntaxe JavaScript et conservé les quatre filtres : 7 jours, 1 mois, 3 mois et 1 an.
+
+Je n’ai pas pu tester le rendu directement dans ton navigateur. Remplace index.html sur GitHub, puis recharge ton site pour vérifier l’alignement. Garde une copie de ton ancien fichier avant de le remplacer.
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -98,8 +200,12 @@ p { line-height: 1.5; color: var(--text); }
   pointer-events: none; z-index: 8; font-family: monospace;
 }
 
+.chart-hit-layer { position:absolute; left:20px; right:60px; top:20px; bottom:30px; z-index:5; pointer-events:none; }
+.candle-col { pointer-events:auto; }
 .svg-trend-layer { position:absolute; top:20px; left:20px; right:60px; width:calc(100% - 80px); height:330px; z-index:4; pointer-events:none; overflow:visible; }
-.candle-col { min-width:0; pointer-events:none; }
+.candle-col { min-width:0; }
+.candle-col:hover { background: rgba(38,166,154,0.06); }
+.chart-header-bar .button { white-space: nowrap; }
 
 .feed-sidebar { background: #131722; border: 1px solid var(--border); border-radius: 8px; padding: 16px; max-height: 420px; overflow-y: auto; }
 .feed-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 12px; }
@@ -242,6 +348,7 @@ var defaultState = {
 
 var state = loadState();
 var currentPage = "dashboard";
+var chartRangeDays = 7;
 
 function loadState() {
   try {
@@ -397,7 +504,7 @@ function dashboardPage() {
   var dayMap = {};
   var today = new Date();
   today.setHours(0, 0, 0, 0);
-  for (var j = 6; j >= 0; j--) {
+  for (var j = chartRangeDays - 1; j >= 0; j--) {
     var dateObj = new Date(today);
     dateObj.setDate(today.getDate() - j);
     var key = dateObj.getFullYear() + "-" +
@@ -475,8 +582,8 @@ function dashboardPage() {
   };
   var svgPoints = [];
   var candleSvg = '';
-  for (var i = 0; i < 7; i++) {
-    var x = 50 + i * (500 / 6);
+  for (var i = 0; i < chartDays.length; i++) {
+    var x = 35 + i * (530 / Math.max(1, chartDays.length - 1));
     var openY = yForCash(candleData[i].open);
     var closeY = yForCash(candleData[i].close);
     var topY = Math.min(openY, closeY);
@@ -492,9 +599,15 @@ function dashboardPage() {
   var yMinVal = minCash;
   var stepY = (yMaxVal - yMinVal) / 3;
 
-  var chart = '<div class="chart-header-bar">' +
-    '<div class="ohlc-info" id="ohlcBarInfo"><span>Trésorerie Momo\'s Business — <i>Survolez un jour pour voir les détails · ligne Attente = trésorerie de la veille</i></span></div>' +
-    '<small style="color:var(--muted)">7 derniers jours</small></div>';
+  var rangeLabel = chartRangeDays === 7 ? "7 derniers jours" : chartRangeDays === 30 ? "30 derniers jours" : chartRangeDays === 90 ? "3 derniers mois" : "12 derniers mois";
+  var chart = '<div class="chart-header-bar" style="align-items:flex-start;">' +
+    '<div class="ohlc-info" id="ohlcBarInfo"><span>Trésorerie Momo\'s Business — <i>Survolez une bougie pour voir les détails</i></span></div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">' +
+    '<button class="button ' + (chartRangeDays===7?'primary':'') + '" style="padding:5px 8px;font-size:11px;" onclick="setChartRange(7)">7 jours</button>' +
+    '<button class="button ' + (chartRangeDays===30?'primary':'') + '" style="padding:5px 8px;font-size:11px;" onclick="setChartRange(30)">1 mois</button>' +
+    '<button class="button ' + (chartRangeDays===90?'primary':'') + '" style="padding:5px 8px;font-size:11px;" onclick="setChartRange(90)">3 mois</button>' +
+    '<button class="button ' + (chartRangeDays===365?'primary':'') + '" style="padding:5px 8px;font-size:11px;" onclick="setChartRange(365)">1 an</button>' +
+    '</div><small style="color:var(--muted);white-space:nowrap;">' + rangeLabel + '</small></div>';
 
   chart += '<div class="terminal-layout"><div class="pro-chart-box" id="proChartBox">';
   chart += '<div class="price-axis-right">' +
@@ -511,18 +624,20 @@ function dashboardPage() {
   chart += '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:0 0 8px 2px;">' +
     '<span><span style="display:inline-block;width:18px;border-top:2px solid var(--accent-green);vertical-align:middle;margin-right:5px;"></span>Trésorerie</span>' +
     '<span><span style="display:inline-block;width:18px;border-top:2px dashed #f0b429;vertical-align:middle;margin-right:5px;"></span>Attente (trésorerie de la veille)</span></div>';
-  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none" role="img" aria-label="Trésorerie des sept dernières dates et ligne Attente basée sur la veille">';
+  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none" role="img" aria-label="Trésorerie sur la période sélectionnée et ligne Attente basée sur la veille">';
   chart += '<line x1="35" y1="' + attenteY.toFixed(2) + '" x2="565" y2="' + attenteY.toFixed(2) + '" stroke="#f0b429" stroke-width="2" stroke-dasharray="8 6" opacity="0.95" />';
   chart += '<polyline fill="none" stroke="var(--accent-green)" stroke-width="2.5" opacity="0.95" points="' + svgPoints.join(' ') + '" />';
   chart += candleSvg;
   chart += '</svg>';
 
-  for (var i = 0; i < 7; i++) {
-    chart += '<div class="candle-col" data-day="' + labels[i] + '" data-sale="' + daysSales[i].toFixed(2) + '" data-exp="' + daysExpenses[i].toFixed(2) + '" data-cash="' + daysCash[i].toFixed(2) + '" data-open="' + candleData[i].open.toFixed(2) + '" data-net="' + candleData[i].net.toFixed(2) + '" style="display:block;height:100%;flex:1;position:relative;cursor:pointer;z-index:5;">' +
-      '<div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted);font-family:monospace;">' + labels[i] + '</div>' +
+  chart += '<div class="chart-hit-layer">';
+  for (var i = 0; i < chartDays.length; i++) {
+    var hitLeftPercent = (x / 600) * 100;
+    chart += '<div class="candle-col" data-day="' + labels[i] + '" data-sale="' + daysSales[i].toFixed(2) + '" data-exp="' + daysExpenses[i].toFixed(2) + '" data-cash="' + daysCash[i].toFixed(2) + '" data-open="' + candleData[i].open.toFixed(2) + '" data-net="' + candleData[i].net.toFixed(2) + '" style="display:block;height:100%;width:' + (100 / chartDays.length).toFixed(4) + '%;position:absolute;left:' + hitLeftPercent.toFixed(4) + '%;top:0;transform:translateX(-50%);cursor:crosshair;z-index:5;">' +
+      '<div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted);font-family:monospace;white-space:nowrap;">' + labels[i] + '</div>' +
       '</div>';
   }
-  chart += '</div>';
+  chart += '</div></div>';
 
   var allTransactions = [];
   companyRows("sales").forEach(function(s) { allTransactions.push({date: s.date, name: s.name, amount: convert(s.total, s.currency), type: "gain"}); });
@@ -1238,57 +1353,38 @@ window.go = function (page) {
   render();
 };
 
+window.setChartRange = function(days) {
+  chartRangeDays = [7, 30, 90, 365].indexOf(Number(days)) !== -1 ? Number(days) : 7;
+  render();
+};
+
 function setupChartInteractivity() {
   var box = document.getElementById("proChartBox");
   var infoBar = document.getElementById("ohlcBarInfo");
   if (!box || !infoBar) return;
 
-  var cols = Array.prototype.slice.call(box.querySelectorAll(".candle-col"));
-  var svg = box.querySelector(".svg-trend-layer");
-  if (!cols.length || !svg) return;
-
-  // Les colonnes HTML occupaient toute la largeur et déclenchaient le survol
-  // loin des bougies. On calcule maintenant la bougie la plus proche du pointeur
-  // dans le repère réel du SVG, et on n'affiche les détails qu'à proximité.
+  var cols = box.querySelectorAll(".candle-col");
   cols.forEach(function(col) {
-    col.style.pointerEvents = "none";
+    col.addEventListener("mouseenter", function() {
+      var day = col.getAttribute("data-day");
+      var sale = Number(col.getAttribute("data-sale") || 0).toLocaleString("fr-FR", {minimumFractionDigits:2, maximumFractionDigits:2});
+      var exp = Number(col.getAttribute("data-exp") || 0).toLocaleString("fr-FR", {minimumFractionDigits:2, maximumFractionDigits:2});
+      var cash = Number(col.getAttribute("data-cash") || 0).toLocaleString("fr-FR", {minimumFractionDigits:2, maximumFractionDigits:2});
+      var net = Number(col.getAttribute("data-net") || 0);
+      var netClass = net >= 0 ? "text-green" : "text-red";
+
+      infoBar.innerHTML =
+        '<span>Date: <strong style="color:white;">' + day + '</strong></span>' +
+        '<span>Ventes encaissées: <strong class="text-green">' + sale + '</strong></span>' +
+        '<span>Sorties: <strong class="text-red">' + exp + '</strong></span>' +
+        '<span>Variation: <strong class="' + netClass + '">' + (net > 0 ? "+" : "") + net.toFixed(2) + '</strong></span>' +
+        '<span>Trésorerie: <strong style="color:white;">' + cash + '</strong></span>';
+    });
+
+    col.addEventListener("mouseleave", function() {
+      infoBar.innerHTML = '<span>Trésorerie Momo\'s Business — <i>Survolez un jour pour voir les détails</i></span>';
+    });
   });
-
-  function resetInfo() {
-    infoBar.innerHTML = '<span>Trésorerie Momo\'s Business — <i>Survolez une bougie pour voir les détails</i></span>';
-  }
-
-  function showColumn(col) {
-    var day = col.getAttribute("data-day");
-    var sale = Number(col.getAttribute("data-sale") || 0);
-    var exp = Number(col.getAttribute("data-exp") || 0);
-    var cash = Number(col.getAttribute("data-cash") || 0);
-    var open = Number(col.getAttribute("data-open") || 0);
-    var net = Number(col.getAttribute("data-net") || 0);
-    var netClass = net >= 0 ? "text-green" : "text-red";
-    infoBar.innerHTML =
-      '<span>Date: <strong style="color:white;">' + day + '</strong></span>' +
-      '<span>Ouverture: <strong style="color:white;">' + open.toFixed(2) + '</strong></span>' +
-      '<span>Ventes encaissées: <strong class="text-green">' + sale.toFixed(2) + '</strong></span>' +
-      '<span>Sorties: <strong class="text-red">' + exp.toFixed(2) + '</strong></span>' +
-      '<span>Variation: <strong class="' + netClass + '">' + (net > 0 ? "+" : "") + net.toFixed(2) + '</strong></span>' +
-      '<span>Trésorerie: <strong style="color:white;">' + cash.toFixed(2) + '</strong></span>';
-  }
-
-  box.addEventListener("mousemove", function(event) {
-    var rect = svg.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    var x = (event.clientX - rect.left) / rect.width * 600;
-    // Les bougies sont placées à x=50, 150, 250, 350, 450, 550
-    // dans le viewBox SVG de 600 unités.
-    var index = Math.round((x - 50) / (500 / 6));
-    if (index < 0 || index >= cols.length) { resetInfo(); return; }
-    var candleX = 50 + index * (500 / 6);
-    var distancePx = Math.abs(x - candleX) * rect.width / 600;
-    if (distancePx > 18) { resetInfo(); return; }
-    showColumn(cols[index]);
-  });
-  box.addEventListener("mouseleave", resetInfo);
 }
 
 function render() {
@@ -1324,3 +1420,5 @@ render();
 </script>
 </body>
 </html>
+
+
