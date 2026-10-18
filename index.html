@@ -484,41 +484,32 @@ function dashboardPage() {
   };
   var svgPoints = [];
   var candleSvg = '';
-  // Deux bougies par date : verte pour les ventes encaissées, rouge pour les sorties.
-  // La ligne turquoise relie les clôtures quotidiennes (trésorerie nette).
+  // Les bougies montrent les mouvements du jour autour d'une base commune :
+  // vert = ventes vers le haut, rouge = sorties vers le bas. Elles sont légèrement décalées.
+  // La ligne turquoise reste sur sa propre échelle et représente la trésorerie de clôture.
   var pointSpacing = 530 / Math.max(1, chartDays.length - 1);
   var candleWidth = Math.max(1, Math.min(10, pointSpacing * 0.30));
+  var maxMovement = 1;
+  chartDays.forEach(function(day) { maxMovement = Math.max(maxMovement, day.sale, day.exp); });
+  var zeroY = 165;
+  var movementHeight = 125;
   for (var i = 0; i < chartDays.length; i++) {
     var x = 35 + i * pointSpacing;
     var day = chartDays[i];
-    var afterSales = day.open + day.sale;
     var closeY = yForCash(day.close);
-    // Bougie verte : mouvement positif du solde d'ouverture au solde après ventes.
+    // Ventes : la bougie verte part de zéro et monte.
     if (day.sale > 0) {
-      var saleOpenY = yForCash(day.open);
-      var saleCloseY = yForCash(afterSales);
-      var greenTop = Math.min(saleOpenY, saleCloseY);
-      var greenHeight = Math.max(2, Math.abs(saleCloseY - saleOpenY));
-      var greenX = x - candleWidth * 0.62;
-      // Mèche verte strictement alignée sur les extrémités de la bougie.
-      candleSvg += '<line x1="' + greenX.toFixed(2) + '" y1="' + greenTop.toFixed(2) + '" x2="' + greenX.toFixed(2) + '" y2="' + (greenTop + greenHeight).toFixed(2) + '" stroke="#26a69a" stroke-width="' + Math.min(2, candleWidth).toFixed(2) + '" />';
-      candleSvg += '<rect x="' + (greenX - candleWidth / 2).toFixed(2) + '" y="' + Math.max(chartTop, greenTop).toFixed(2) + '" width="' + candleWidth.toFixed(2) + '" height="' + greenHeight.toFixed(2) + '" rx="1" fill="#26a69a" stroke="#26a69a" stroke-width="0.5" />';
+      var greenHeight = Math.max(2, (day.sale / maxMovement) * movementHeight);
+      var greenX = x - candleWidth * 0.72;
+      candleSvg += '<line x1="' + greenX.toFixed(2) + '" y1="' + (zeroY - greenHeight - 5).toFixed(2) + '" x2="' + greenX.toFixed(2) + '" y2="' + (zeroY + 5).toFixed(2) + '" stroke="#26a69a" stroke-width="1.4" />';
+      candleSvg += '<rect x="' + (greenX - candleWidth / 2).toFixed(2) + '" y="' + (zeroY - greenHeight).toFixed(2) + '" width="' + candleWidth.toFixed(2) + '" height="' + greenHeight.toFixed(2) + '" rx="1" fill="#26a69a" stroke="#26a69a" stroke-width="0.5" />';
     }
-    // Bougie rouge : elle démarre exactement à afterSales, donc à la fin de la bougie verte du même jour.
+    // Sorties : la bougie rouge part du même zéro et descend, décalée à droite.
     if (day.exp > 0) {
-      var redOpenY = yForCash(afterSales);
-      var redCloseY = yForCash(day.close);
-      var redTop = Math.min(redOpenY, redCloseY);
-      var redHeight = Math.max(2, Math.abs(redCloseY - redOpenY));
-      var redX = x + candleWidth * 0.62;
-      // La bougie rouge commence exactement au niveau atteint par la verte après les ventes.
-      candleSvg += '<line x1="' + redX.toFixed(2) + '" y1="' + redTop.toFixed(2) + '" x2="' + redX.toFixed(2) + '" y2="' + (redTop + redHeight).toFixed(2) + '" stroke="#ef5350" stroke-width="' + Math.min(2, candleWidth).toFixed(2) + '" />';
-      candleSvg += '<rect x="' + (redX - candleWidth / 2).toFixed(2) + '" y="' + Math.max(chartTop, redTop).toFixed(2) + '" width="' + candleWidth.toFixed(2) + '" height="' + redHeight.toFixed(2) + '" rx="1" fill="#ef5350" stroke="#ef5350" stroke-width="0.5" />';
-    }
-    // Petit repère turquoise si aucun mouvement n'a eu lieu ce jour-là.
-    if (day.sale === 0 && day.exp === 0) {
-      var flatY = yForCash(day.close);
-      candleSvg += '<line x1="' + (x - 2).toFixed(2) + '" y1="' + flatY.toFixed(2) + '" x2="' + (x + 2).toFixed(2) + '" y2="' + flatY.toFixed(2) + '" stroke="#26a69a" stroke-width="2" />';
+      var redHeight = Math.max(2, (day.exp / maxMovement) * movementHeight);
+      var redX = x + candleWidth * 0.72;
+      candleSvg += '<line x1="' + redX.toFixed(2) + '" y1="' + (zeroY - 5).toFixed(2) + '" x2="' + redX.toFixed(2) + '" y2="' + (zeroY + redHeight + 5).toFixed(2) + '" stroke="#ef5350" stroke-width="1.4" />';
+      candleSvg += '<rect x="' + (redX - candleWidth / 2).toFixed(2) + '" y="' + zeroY.toFixed(2) + '" width="' + candleWidth.toFixed(2) + '" height="' + redHeight.toFixed(2) + '" rx="1" fill="#ef5350" stroke="#ef5350" stroke-width="0.5" />';
     }
     svgPoints.push(x.toFixed(2) + ',' + closeY.toFixed(2));
   }
@@ -552,7 +543,8 @@ function dashboardPage() {
     '<span><span style="display:inline-block;width:18px;border-top:2px solid var(--accent-green);vertical-align:middle;margin-right:5px;"></span>Trésorerie nette (clôture)</span>' +
     '<span style="color:#26a69a;">▮ Ventes (+)</span><span style="color:#ef5350;">▮ Sorties (−)</span>' +
     '<span><span style="display:inline-block;width:18px;border-top:2px dashed #f0b429;vertical-align:middle;margin-right:5px;"></span>Attente (trésorerie de la veille)</span></div>';
-  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none" role="img" aria-label="Bougie verte pour les ventes encaissées et bougie rouge pour les sorties du même jour ; ligne turquoise pour la trésorerie nette de clôture">';
+  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none" role="img" aria-label="Bougie verte partant de zéro vers le haut pour les ventes, bougie rouge partant du même zéro vers le bas pour les sorties ; ligne turquoise pour la trésorerie nette de clôture">';
+  chart += '<line x1="35" y1="165" x2="565" y2="165" stroke="#7b8498" stroke-width="1" stroke-dasharray="3 5" opacity="0.65" />';
   chart += '<line x1="35" y1="' + attenteY.toFixed(2) + '" x2="565" y2="' + attenteY.toFixed(2) + '" stroke="#f0b429" stroke-width="2" stroke-dasharray="8 6" opacity="0.95" />';
   chart += '<polyline fill="none" stroke="var(--accent-green)" stroke-width="2.5" opacity="0.95" points="' + svgPoints.join(' ') + '" />';
   chart += candleSvg;
