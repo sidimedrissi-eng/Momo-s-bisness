@@ -1,102 +1,3 @@
-
-Chargement des messages plus anciens…
-mais nn dans l'amage que j'ai mmis les date ne sont pas bien aligner
-
-Réfléchi pendant 44s
-Ah, je comprends : sur ta capture, les dates sous les bougies ne sont pas alignées avec les bougies correspondantes. J’ai corrigé leur positionnement dans le code, sans créer d’image.
-
-Voici les deux fichiers mis à jour :
-
-Fichier texte (.txt)
-
-📄 Télécharger le code complet corrigé
-
-Fichier HTML
-
-🌐 Télécharger la version HTML corrigée
-
-J’ai vérifié la syntaxe JavaScript et conservé les quatre filtres : 7 jours, 1 mois, 3 mois et 1 an.
-
-Je n’ai pas pu tester le rendu directement dans ton navigateur. Remplace index.html sur GitHub, puis recharge ton site pour vérifier l’alignement. Garde une copie de ton ancien fichier avant de le remplacer.
-
-Pièce jointe utilisateur
-ecoute soit on agrandi le graphique ce que tu ne fais pas depuis une semaine alors que  je te le demande
-sois tu fais en sorte que les bougie retressissent pour pasce superposer
-
-Réfléchi pendant 45s
-
-Tu as raison : sur ta capture, les bougies se superposent surtout lorsque tu sélectionnes « 1 an ». J’ai modifié le code pour réduire automatiquement leur largeur selon la période et espacer les dates affichées. J’ai aussi corrigé le positionnement des zones de survol.
-
-Voici les fichiers complets mis à jour :
-
-Fichier texte (.txt)
-
-📄 Télécharger le code complet corrigé
-
-Fichier HTML
-
-🌐 Télécharger la version HTML corrigée
-
-Les quatre filtres restent présents : 7 jours, 1 mois, 3 mois et 1 an. La syntaxe JavaScript est vérifiée, mais il reste à confirmer le rendu directement sur ton site GitHub Pages.
-
-Garde une copie de ton ancien index.html avant de le remplacer.
-
-Pièce jointe utilisateur
-Pièce jointe utilisateur
-il y a un seul problème quna dje met la souris sur une bougie avec trop d'info ça dessant pour fair  de l'espace
-
-Réfléchi pendant 22s
-J’ai corrigé ce problème : quand tu survoles une bougie, les informations restent sur une seule ligne et le graphique ne doit plus descendre pour leur faire de la place.
-
-Voici les deux fichiers complets de Momo’s Business :
-
-Fichier texte (.txt)
-
-📄 Télécharger le code complet
-
-Fichier HTML
-
-🌐 Télécharger le fichier HTML
-
-J’ai vérifié la syntaxe JavaScript. Les informations trop longues peuvent maintenant défiler horizontalement au lieu de faire grandir l’en-tête.
-
-Pour l’installer, remplace le contenu de index.html sur GitHub par celui du nouveau fichier, puis clique sur Commit changes. Garde une copie de ton ancien fichier avant de le remplacer.
-
-je veux une BOUGIE VERTE qui par vers LE HAUT ET une BOUGIE ROUGE qui par vers le bas LES DEUX POUR LE MÊME JOUR !
-
-SI LA VERTE C'EST 500 DHS LA ROUGE -200 DHS ALRS LA LIGNE PASSERA PAR 300 DHS ça c'est la ligne tresorerie
-
-Réfléchi pendant 37s
-D’accord ! J’ai compris exactement ce que tu veux : deux bougies pour chaque jour, une verte pour les gains et une rouge pour les sorties. Et la ligne turquoise représente la trésorerie réelle après les deux mouvements.
-
-Par exemple, si ta trésorerie au début du jour est de 1 000 DH :
-
-Départ
-
-1 000 DH
-Bougie verte
-
-+500 DH
-Bougie rouge
-
-−200 DH
-Calcul de la trésorerie en fin de journée
-
-1 000 + 500 − 200 = 1 300 DH
-La ligne turquoise passe donc par 1 300 DH à la clôture de cette journée.
-
-J’ai modifié le code pour appliquer ce fonctionnement, en conservant les filtres et le reste du site.
-
-Fichier texte (.txt)
-
-📄 Télécharger le code complet
-
-Fichier HTML
-
-🌐 Télécharger la version HTML
-
-La syntaxe JavaScript a été vérifiée. Le rendu visuel doit encore être testé sur ton site après remplacement de index.html. Garde une copie de l’ancien fichier avant de faire le changement.
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -599,17 +500,19 @@ function dashboardPage() {
       var greenTop = Math.min(saleOpenY, saleCloseY);
       var greenHeight = Math.max(2, Math.abs(saleCloseY - saleOpenY));
       var greenX = x - candleWidth * 0.62;
-      candleSvg += '<line x1="' + greenX.toFixed(2) + '" y1="' + Math.max(chartTop, greenTop - 4).toFixed(2) + '" x2="' + greenX.toFixed(2) + '" y2="' + Math.min(chartBottom, greenTop + greenHeight + 4).toFixed(2) + '" stroke="#26a69a" stroke-width="' + Math.min(2, candleWidth).toFixed(2) + '" />';
+      // Mèche verte strictement alignée sur les extrémités de la bougie.
+      candleSvg += '<line x1="' + greenX.toFixed(2) + '" y1="' + greenTop.toFixed(2) + '" x2="' + greenX.toFixed(2) + '" y2="' + (greenTop + greenHeight).toFixed(2) + '" stroke="#26a69a" stroke-width="' + Math.min(2, candleWidth).toFixed(2) + '" />';
       candleSvg += '<rect x="' + (greenX - candleWidth / 2).toFixed(2) + '" y="' + Math.max(chartTop, greenTop).toFixed(2) + '" width="' + candleWidth.toFixed(2) + '" height="' + greenHeight.toFixed(2) + '" rx="1" fill="#26a69a" stroke="#26a69a" stroke-width="0.5" />';
     }
-    // Bougie rouge : sorties déduites après les ventes du même jour.
+    // Bougie rouge : elle démarre exactement à afterSales, donc à la fin de la bougie verte du même jour.
     if (day.exp > 0) {
       var redOpenY = yForCash(afterSales);
       var redCloseY = yForCash(day.close);
       var redTop = Math.min(redOpenY, redCloseY);
       var redHeight = Math.max(2, Math.abs(redCloseY - redOpenY));
       var redX = x + candleWidth * 0.62;
-      candleSvg += '<line x1="' + redX.toFixed(2) + '" y1="' + Math.max(chartTop, redTop - 4).toFixed(2) + '" x2="' + redX.toFixed(2) + '" y2="' + Math.min(chartBottom, redTop + redHeight + 4).toFixed(2) + '" stroke="#ef5350" stroke-width="' + Math.min(2, candleWidth).toFixed(2) + '" />';
+      // La bougie rouge commence exactement au niveau atteint par la verte après les ventes.
+      candleSvg += '<line x1="' + redX.toFixed(2) + '" y1="' + redTop.toFixed(2) + '" x2="' + redX.toFixed(2) + '" y2="' + (redTop + redHeight).toFixed(2) + '" stroke="#ef5350" stroke-width="' + Math.min(2, candleWidth).toFixed(2) + '" />';
       candleSvg += '<rect x="' + (redX - candleWidth / 2).toFixed(2) + '" y="' + Math.max(chartTop, redTop).toFixed(2) + '" width="' + candleWidth.toFixed(2) + '" height="' + redHeight.toFixed(2) + '" rx="1" fill="#ef5350" stroke="#ef5350" stroke-width="0.5" />';
     }
     // Petit repère turquoise si aucun mouvement n'a eu lieu ce jour-là.
@@ -1448,5 +1351,3 @@ render();
 </script>
 </body>
 </html>
-
-
