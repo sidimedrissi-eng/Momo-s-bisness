@@ -100,6 +100,28 @@ J’ai vérifié la syntaxe JavaScript et conservé les quatre filtres : 7 jours
 
 Je n’ai pas pu tester le rendu directement dans ton navigateur. Remplace index.html sur GitHub, puis recharge ton site pour vérifier l’alignement. Garde une copie de ton ancien fichier avant de le remplacer.
 
+Pièce jointe utilisateur
+ecoute soit on agrandi le graphique ce que tu ne fais pas depuis une semaine alors que  je te le demande
+sois tu fais en sorte que les bougie retressissent pour pasce superposer
+
+Réfléchi pendant 45s
+
+Tu as raison : sur ta capture, les bougies se superposent surtout lorsque tu sélectionnes « 1 an ». J’ai modifié le code pour réduire automatiquement leur largeur selon la période et espacer les dates affichées. J’ai aussi corrigé le positionnement des zones de survol.
+
+Voici les fichiers complets mis à jour :
+
+Fichier texte (.txt)
+
+📄 Télécharger le code complet corrigé
+
+Fichier HTML
+
+🌐 Télécharger la version HTML corrigée
+
+Les quatre filtres restent présents : 7 jours, 1 mois, 3 mois et 1 an. La syntaxe JavaScript est vérifiée, mais il reste à confirmer le rendu directement sur ton site GitHub Pages.
+
+Garde une copie de ton ancien index.html avant de le remplacer.
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -582,17 +604,20 @@ function dashboardPage() {
   };
   var svgPoints = [];
   var candleSvg = '';
+  // Espacement adaptatif : les bougies rétrécissent lorsque la période est longue.
+  var pointSpacing = 530 / Math.max(1, chartDays.length - 1);
+  var candleWidth = Math.max(1.5, Math.min(16, pointSpacing * 0.52));
   for (var i = 0; i < chartDays.length; i++) {
-    var x = 35 + i * (530 / Math.max(1, chartDays.length - 1));
+    var x = 35 + i * pointSpacing;
     var openY = yForCash(candleData[i].open);
     var closeY = yForCash(candleData[i].close);
     var topY = Math.min(openY, closeY);
-    var bodyHeight = Math.max(3, Math.abs(closeY - openY));
+    var bodyHeight = Math.max(2, Math.abs(closeY - openY));
     var color = candleData[i].close >= candleData[i].open ? '#26a69a' : '#ef5350';
-    var wickTop = Math.max(chartTop, Math.min(openY, closeY) - 8);
-    var wickBottom = Math.min(chartBottom, Math.max(openY, closeY) + 8);
-    candleSvg += '<line x1="' + x.toFixed(2) + '" y1="' + wickTop.toFixed(2) + '" x2="' + x.toFixed(2) + '" y2="' + wickBottom.toFixed(2) + '" stroke="' + color + '" stroke-width="2" />';
-    candleSvg += '<rect x="' + (x - 8).toFixed(2) + '" y="' + Math.max(chartTop, topY).toFixed(2) + '" width="16" height="' + bodyHeight.toFixed(2) + '" rx="2" fill="' + color + '" stroke="' + color + '" stroke-width="1" />';
+    var wickTop = Math.max(chartTop, Math.min(openY, closeY) - 5);
+    var wickBottom = Math.min(chartBottom, Math.max(openY, closeY) + 5);
+    candleSvg += '<line x1="' + x.toFixed(2) + '" y1="' + wickTop.toFixed(2) + '" x2="' + x.toFixed(2) + '" y2="' + wickBottom.toFixed(2) + '" stroke="' + color + '" stroke-width="' + Math.min(2, candleWidth).toFixed(2) + '" />';
+    candleSvg += '<rect x="' + (x - candleWidth / 2).toFixed(2) + '" y="' + Math.max(chartTop, topY).toFixed(2) + '" width="' + candleWidth.toFixed(2) + '" height="' + bodyHeight.toFixed(2) + '" rx="' + Math.min(2, candleWidth / 3).toFixed(2) + '" fill="' + color + '" stroke="' + color + '" stroke-width="0.5" />';
     svgPoints.push(x.toFixed(2) + ',' + closeY.toFixed(2));
   }
   var yMaxVal = maxCash;
@@ -631,11 +656,14 @@ function dashboardPage() {
   chart += '</svg>';
 
   chart += '<div class="chart-hit-layer">';
+  // Une zone de survol par bougie, centrée sur sa vraie abscisse. Les dates sont espacées pour rester lisibles.
+  var labelEvery = chartRangeDays === 7 ? 1 : chartRangeDays === 30 ? 3 : chartRangeDays === 90 ? 7 : 30;
   for (var i = 0; i < chartDays.length; i++) {
-    var hitLeftPercent = (x / 600) * 100;
-    chart += '<div class="candle-col" data-day="' + labels[i] + '" data-sale="' + daysSales[i].toFixed(2) + '" data-exp="' + daysExpenses[i].toFixed(2) + '" data-cash="' + daysCash[i].toFixed(2) + '" data-open="' + candleData[i].open.toFixed(2) + '" data-net="' + candleData[i].net.toFixed(2) + '" style="display:block;height:100%;width:' + (100 / chartDays.length).toFixed(4) + '%;position:absolute;left:' + hitLeftPercent.toFixed(4) + '%;top:0;transform:translateX(-50%);cursor:crosshair;z-index:5;">' +
-      '<div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted);font-family:monospace;white-space:nowrap;">' + labels[i] + '</div>' +
-      '</div>';
+    var hitX = 35 + i * (530 / Math.max(1, chartDays.length - 1));
+    var hitLeftPercent = (hitX / 600) * 100;
+    var showDateLabel = (i % labelEvery === 0) || i === chartDays.length - 1;
+    var dateLabelHtml = showDateLabel ? '<div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted);font-family:monospace;white-space:nowrap;">' + labels[i] + '</div>' : '';
+    chart += '<div class="candle-col" data-day="' + labels[i] + '" data-sale="' + daysSales[i].toFixed(2) + '" data-exp="' + daysExpenses[i].toFixed(2) + '" data-cash="' + daysCash[i].toFixed(2) + '" data-open="' + candleData[i].open.toFixed(2) + '" data-net="' + candleData[i].net.toFixed(2) + '" style="display:block;height:100%;width:' + Math.max(1.2, (530 / 600 / chartDays.length) * 100).toFixed(4) + '%;position:absolute;left:' + hitLeftPercent.toFixed(4) + '%;top:0;transform:translateX(-50%);cursor:crosshair;z-index:5;">' + dateLabelHtml + '</div>';
   }
   chart += '</div></div>';
 
