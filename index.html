@@ -1,37 +1,6 @@
 
 Chargement des messages plus anciens…
 Pièce jointe utilisateur
-Pièce jointe utilisateur
-enfeite je ois mettre la souris un  à droite pour "toucher" la bougie alors que je ne la touche pas
-
-
-Texte collé(5).txt
-Document
-nn c'est bien plus à droite !!!
-
-mais ne me fais pas d'image change le code :
-
-Réfléchi pendant 35s
-
-C’est corrigé ! J’ai modifié le code pour que les informations apparaissent uniquement lorsque ta souris est réellement proche d’une bougie, et non plusieurs centimètres à droite.
-
-Momo’s Business — code corrigé (.txt)
-
-Fichier texte complet pour remplacer le code de ton site.
-
-📄 Télécharger le fichier texte
-
-Version HTML
-
-Le fichier prêt à être utilisé comme index.html.
-
-🌐 Télécharger le fichier HTML
-
-Pour mettre à jour ton site GitHub : ouvre index.html, remplace son contenu par celui du fichier corrigé, puis valide avec Commit changes.
-
-J’ai conservé les autres fonctionnalités du code fourni et vérifié la syntaxe JavaScript. Pense à garder une copie de ton ancien fichier avant de le remplacer.
-
-Pièce jointe utilisateur
 ça marche mais T sur que les dat sont bien et il y a PAS LE FILTRE !!!
 
 Réfléchi pendant 36s
@@ -122,6 +91,27 @@ Les quatre filtres restent présents : 7 jours, 1 mois, 3 mois et 1 an. La synta
 
 Garde une copie de ton ancien index.html avant de le remplacer.
 
+Pièce jointe utilisateur
+Pièce jointe utilisateur
+il y a un seul problème quna dje met la souris sur une bougie avec trop d'info ça dessant pour fair  de l'espace
+
+Réfléchi pendant 22s
+J’ai corrigé ce problème : quand tu survoles une bougie, les informations restent sur une seule ligne et le graphique ne doit plus descendre pour leur faire de la place.
+
+Voici les deux fichiers complets de Momo’s Business :
+
+Fichier texte (.txt)
+
+📄 Télécharger le code complet
+
+Fichier HTML
+
+🌐 Télécharger le fichier HTML
+
+J’ai vérifié la syntaxe JavaScript. Les informations trop longues peuvent maintenant défiler horizontalement au lieu de faire grandir l’en-tête.
+
+Pour l’installer, remplace le contenu de index.html sur GitHub par celui du nouveau fichier, puis clique sur Commit changes. Garde une copie de ton ancien fichier avant de le remplacer.
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -202,7 +192,9 @@ p { line-height: 1.5; color: var(--text); }
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 10px; flex-wrap: wrap; gap: 10px; font-family: monospace; background: #131722; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border);
 }
-.ohlc-info { font-size: 11px; color: var(--text); display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+/* Réserve une hauteur fixe aux informations : le graphique ne bouge pas au survol. */
+.ohlc-info { font-size: 11px; color: var(--text); display: flex; gap: 15px; align-items: center; flex-wrap: nowrap; white-space: nowrap; min-height: 24px; min-width: 0; flex: 1 1 100%; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.ohlc-info span { flex: 0 0 auto; }
 
 .pro-chart-box {
   position: relative; display: flex; align-items: stretch; height: 380px; padding: 20px 65px 30px 20px;
@@ -625,7 +617,7 @@ function dashboardPage() {
   var stepY = (yMaxVal - yMinVal) / 3;
 
   var rangeLabel = chartRangeDays === 7 ? "7 derniers jours" : chartRangeDays === 30 ? "30 derniers jours" : chartRangeDays === 90 ? "3 derniers mois" : "12 derniers mois";
-  var chart = '<div class="chart-header-bar" style="align-items:flex-start;">' +
+  var chart = '<div class="chart-header-bar" style="align-items:center;">' +
     '<div class="ohlc-info" id="ohlcBarInfo"><span>Trésorerie Momo\'s Business — <i>Survolez une bougie pour voir les détails</i></span></div>' +
     '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">' +
     '<button class="button ' + (chartRangeDays===7?'primary':'') + '" style="padding:5px 8px;font-size:11px;" onclick="setChartRange(7)">7 jours</button>' +
