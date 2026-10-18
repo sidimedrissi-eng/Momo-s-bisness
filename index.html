@@ -1,55 +1,5 @@
 
 Chargement des messages plus anciens…
-Pièce jointe utilisateur
-ça marche mais T sur que les dat sont bien et il y a PAS LE FILTRE !!!
-
-Réfléchi pendant 36s
-Tu as raison : les filtres manquaient. Je les ai ajoutés au code, avec quatre périodes sélectionnables. J’ai également vérifié la syntaxe JavaScript.
-
-Voici les deux fichiers complets :
-
-Fichier texte (.txt)
-
-📄 Télécharger le code complet
-
-Fichier HTML
-
-🌐 Télécharger la version HTML
-
-Les filtres ajoutés sont :
-
-7 jours
-
-1 mois (30 jours)
-
-3 mois (90 jours)
-
-1 an (365 jours)
-
-Et les données, sont-elles correctes ?
-Le graphique calcule la trésorerie à partir des opérations enregistrées : ventes encaissées, achats payés et dépenses. Je ne peux toutefois pas garantir que les montants correspondent à ta trésorerie réelle sans vérifier tes opérations. Les filtres affichent les périodes choisies, mais il faudra encore tester leur rendu dans ton site.
-
-Avant de remplacer index.html sur GitHub, conserve une copie de l’ancien fichier. Les données locales de ton navigateur ne sont pas incluses dans ce code.
-
-t'a corriger les date
-
-Réfléchi pendant 7s
-Partiellement. Dans le dernier fichier, j’ai corrigé la génération des dates du graphique pour afficher les jours calendaires, mais je ne peux pas encore garantir que toutes les dates des opérations sont correctes.
-
-Le graphique doit respecter ces règles :
-
-7 jours : les 7 dernières dates, avec la date du jour.
-
-1 mois : les 30 derniers jours.
-
-3 mois : les 90 derniers jours.
-
-1 an : les 365 derniers jours.
-
-Chaque vente, achat ou dépense doit apparaître à sa vraie date, sans décalage d’un jour.
-
-Je préfère être honnête : je n’ai pas encore validé ces quatre périodes avec tes données réelles. Le dernier fichier ne doit donc pas être considéré comme une correction définitive des dates.
-
 mais nn dans l'amage que j'ai mmis les date ne sont pas bien aligner
 
 Réfléchi pendant 44s
@@ -111,6 +61,41 @@ Fichier HTML
 J’ai vérifié la syntaxe JavaScript. Les informations trop longues peuvent maintenant défiler horizontalement au lieu de faire grandir l’en-tête.
 
 Pour l’installer, remplace le contenu de index.html sur GitHub par celui du nouveau fichier, puis clique sur Commit changes. Garde une copie de ton ancien fichier avant de le remplacer.
+
+je veux une BOUGIE VERTE qui par vers LE HAUT ET une BOUGIE ROUGE qui par vers le bas LES DEUX POUR LE MÊME JOUR !
+
+SI LA VERTE C'EST 500 DHS LA ROUGE -200 DHS ALRS LA LIGNE PASSERA PAR 300 DHS ça c'est la ligne tresorerie
+
+Réfléchi pendant 37s
+D’accord ! J’ai compris exactement ce que tu veux : deux bougies pour chaque jour, une verte pour les gains et une rouge pour les sorties. Et la ligne turquoise représente la trésorerie réelle après les deux mouvements.
+
+Par exemple, si ta trésorerie au début du jour est de 1 000 DH :
+
+Départ
+
+1 000 DH
+Bougie verte
+
++500 DH
+Bougie rouge
+
+−200 DH
+Calcul de la trésorerie en fin de journée
+
+1 000 + 500 − 200 = 1 300 DH
+La ligne turquoise passe donc par 1 300 DH à la clôture de cette journée.
+
+J’ai modifié le code pour appliquer ce fonctionnement, en conservant les filtres et le reste du site.
+
+Fichier texte (.txt)
+
+📄 Télécharger le code complet
+
+Fichier HTML
+
+🌐 Télécharger la version HTML
+
+La syntaxe JavaScript a été vérifiée. Le rendu visuel doit encore être testé sur ton site après remplacement de index.html. Garde une copie de l’ancien fichier avant de faire le changement.
 
 <!DOCTYPE html>
 <html lang="fr">
@@ -572,11 +557,13 @@ function dashboardPage() {
     candleData.push({ open: day.open, close: day.close, net: day.net });
   });
 
+  // L'échelle doit inclure le sommet intermédiaire de la journée :
+  // ouverture -> ventes (bougie verte) -> sorties (bougie rouge) -> clôture.
   var minCash = Math.min.apply(null, chartDays.map(function (day) {
-    return Math.min(day.open, day.close);
+    return Math.min(day.open, day.close, day.open + day.sale);
   }));
   var maxCash = Math.max.apply(null, chartDays.map(function (day) {
-    return Math.max(day.open, day.close);
+    return Math.max(day.open, day.close, day.open + day.sale);
   }));
   if (maxCash === minCash) {
     var paddingCash = Math.max(1, Math.abs(maxCash) * 0.02);
@@ -596,20 +583,40 @@ function dashboardPage() {
   };
   var svgPoints = [];
   var candleSvg = '';
-  // Espacement adaptatif : les bougies rétrécissent lorsque la période est longue.
+  // Deux bougies par date : verte pour les ventes encaissées, rouge pour les sorties.
+  // La ligne turquoise relie les clôtures quotidiennes (trésorerie nette).
   var pointSpacing = 530 / Math.max(1, chartDays.length - 1);
-  var candleWidth = Math.max(1.5, Math.min(16, pointSpacing * 0.52));
+  var candleWidth = Math.max(1, Math.min(10, pointSpacing * 0.30));
   for (var i = 0; i < chartDays.length; i++) {
     var x = 35 + i * pointSpacing;
-    var openY = yForCash(candleData[i].open);
-    var closeY = yForCash(candleData[i].close);
-    var topY = Math.min(openY, closeY);
-    var bodyHeight = Math.max(2, Math.abs(closeY - openY));
-    var color = candleData[i].close >= candleData[i].open ? '#26a69a' : '#ef5350';
-    var wickTop = Math.max(chartTop, Math.min(openY, closeY) - 5);
-    var wickBottom = Math.min(chartBottom, Math.max(openY, closeY) + 5);
-    candleSvg += '<line x1="' + x.toFixed(2) + '" y1="' + wickTop.toFixed(2) + '" x2="' + x.toFixed(2) + '" y2="' + wickBottom.toFixed(2) + '" stroke="' + color + '" stroke-width="' + Math.min(2, candleWidth).toFixed(2) + '" />';
-    candleSvg += '<rect x="' + (x - candleWidth / 2).toFixed(2) + '" y="' + Math.max(chartTop, topY).toFixed(2) + '" width="' + candleWidth.toFixed(2) + '" height="' + bodyHeight.toFixed(2) + '" rx="' + Math.min(2, candleWidth / 3).toFixed(2) + '" fill="' + color + '" stroke="' + color + '" stroke-width="0.5" />';
+    var day = chartDays[i];
+    var afterSales = day.open + day.sale;
+    var closeY = yForCash(day.close);
+    // Bougie verte : mouvement positif du solde d'ouverture au solde après ventes.
+    if (day.sale > 0) {
+      var saleOpenY = yForCash(day.open);
+      var saleCloseY = yForCash(afterSales);
+      var greenTop = Math.min(saleOpenY, saleCloseY);
+      var greenHeight = Math.max(2, Math.abs(saleCloseY - saleOpenY));
+      var greenX = x - candleWidth * 0.62;
+      candleSvg += '<line x1="' + greenX.toFixed(2) + '" y1="' + Math.max(chartTop, greenTop - 4).toFixed(2) + '" x2="' + greenX.toFixed(2) + '" y2="' + Math.min(chartBottom, greenTop + greenHeight + 4).toFixed(2) + '" stroke="#26a69a" stroke-width="' + Math.min(2, candleWidth).toFixed(2) + '" />';
+      candleSvg += '<rect x="' + (greenX - candleWidth / 2).toFixed(2) + '" y="' + Math.max(chartTop, greenTop).toFixed(2) + '" width="' + candleWidth.toFixed(2) + '" height="' + greenHeight.toFixed(2) + '" rx="1" fill="#26a69a" stroke="#26a69a" stroke-width="0.5" />';
+    }
+    // Bougie rouge : sorties déduites après les ventes du même jour.
+    if (day.exp > 0) {
+      var redOpenY = yForCash(afterSales);
+      var redCloseY = yForCash(day.close);
+      var redTop = Math.min(redOpenY, redCloseY);
+      var redHeight = Math.max(2, Math.abs(redCloseY - redOpenY));
+      var redX = x + candleWidth * 0.62;
+      candleSvg += '<line x1="' + redX.toFixed(2) + '" y1="' + Math.max(chartTop, redTop - 4).toFixed(2) + '" x2="' + redX.toFixed(2) + '" y2="' + Math.min(chartBottom, redTop + redHeight + 4).toFixed(2) + '" stroke="#ef5350" stroke-width="' + Math.min(2, candleWidth).toFixed(2) + '" />';
+      candleSvg += '<rect x="' + (redX - candleWidth / 2).toFixed(2) + '" y="' + Math.max(chartTop, redTop).toFixed(2) + '" width="' + candleWidth.toFixed(2) + '" height="' + redHeight.toFixed(2) + '" rx="1" fill="#ef5350" stroke="#ef5350" stroke-width="0.5" />';
+    }
+    // Petit repère turquoise si aucun mouvement n'a eu lieu ce jour-là.
+    if (day.sale === 0 && day.exp === 0) {
+      var flatY = yForCash(day.close);
+      candleSvg += '<line x1="' + (x - 2).toFixed(2) + '" y1="' + flatY.toFixed(2) + '" x2="' + (x + 2).toFixed(2) + '" y2="' + flatY.toFixed(2) + '" stroke="#26a69a" stroke-width="2" />';
+    }
     svgPoints.push(x.toFixed(2) + ',' + closeY.toFixed(2));
   }
   var yMaxVal = maxCash;
@@ -639,9 +646,10 @@ function dashboardPage() {
   var attenteY = yForCash(attenteValue);
 
   chart += '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:0 0 8px 2px;">' +
-    '<span><span style="display:inline-block;width:18px;border-top:2px solid var(--accent-green);vertical-align:middle;margin-right:5px;"></span>Trésorerie</span>' +
+    '<span><span style="display:inline-block;width:18px;border-top:2px solid var(--accent-green);vertical-align:middle;margin-right:5px;"></span>Trésorerie nette (clôture)</span>' +
+    '<span style="color:#26a69a;">▮ Ventes (+)</span><span style="color:#ef5350;">▮ Sorties (−)</span>' +
     '<span><span style="display:inline-block;width:18px;border-top:2px dashed #f0b429;vertical-align:middle;margin-right:5px;"></span>Attente (trésorerie de la veille)</span></div>';
-  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none" role="img" aria-label="Trésorerie sur la période sélectionnée et ligne Attente basée sur la veille">';
+  chart += '<svg class="svg-trend-layer" viewBox="0 0 600 330" preserveAspectRatio="none" role="img" aria-label="Bougie verte pour les ventes encaissées et bougie rouge pour les sorties du même jour ; ligne turquoise pour la trésorerie nette de clôture">';
   chart += '<line x1="35" y1="' + attenteY.toFixed(2) + '" x2="565" y2="' + attenteY.toFixed(2) + '" stroke="#f0b429" stroke-width="2" stroke-dasharray="8 6" opacity="0.95" />';
   chart += '<polyline fill="none" stroke="var(--accent-green)" stroke-width="2.5" opacity="0.95" points="' + svgPoints.join(' ') + '" />';
   chart += candleSvg;
