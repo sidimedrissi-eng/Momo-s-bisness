@@ -99,7 +99,7 @@ p { line-height: 1.5; color: var(--text); }
 }
 
 .svg-trend-layer { position:absolute; top:20px; left:20px; right:60px; width:calc(100% - 80px); height:330px; z-index:4; pointer-events:none; overflow:visible; }
-.candle-col { min-width:0; }
+.candle-col { min-width:0; pointer-events:none; }
 
 .feed-sidebar { background: #131722; border: 1px solid var(--border); border-radius: 8px; padding: 16px; max-height: 420px; overflow-y: auto; }
 .feed-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 12px; }
@@ -1243,28 +1243,52 @@ function setupChartInteractivity() {
   var infoBar = document.getElementById("ohlcBarInfo");
   if (!box || !infoBar) return;
 
-  var cols = box.querySelectorAll(".candle-col");
+  var cols = Array.prototype.slice.call(box.querySelectorAll(".candle-col"));
+  var svg = box.querySelector(".svg-trend-layer");
+  if (!cols.length || !svg) return;
+
+  // Les colonnes HTML occupaient toute la largeur et déclenchaient le survol
+  // loin des bougies. On calcule maintenant la bougie la plus proche du pointeur
+  // dans le repère réel du SVG, et on n'affiche les détails qu'à proximité.
   cols.forEach(function(col) {
-    col.addEventListener("mouseenter", function() {
-      var day = col.getAttribute("data-day");
-      var sale = col.getAttribute("data-sale");
-      var exp = col.getAttribute("data-exp");
-      var cash = col.getAttribute("data-cash");
-      var net = Number(col.getAttribute("data-net") || 0);
-      var netClass = net >= 0 ? "text-green" : "text-red";
-
-      infoBar.innerHTML =
-        '<span>Date: <strong style="color:white;">' + day + '</strong></span>' +
-        '<span>Ventes encaissées: <strong class="text-green">' + sale + '</strong></span>' +
-        '<span>Sorties: <strong class="text-red">' + exp + '</strong></span>' +
-        '<span>Variation: <strong class="' + netClass + '">' + (net > 0 ? "+" : "") + net.toFixed(2) + '</strong></span>' +
-        '<span>Trésorerie: <strong style="color:white;">' + cash + '</strong></span>';
-    });
-
-    col.addEventListener("mouseleave", function() {
-      infoBar.innerHTML = '<span>Trésorerie Momo\'s Business — <i>Survolez un jour pour voir les détails</i></span>';
-    });
+    col.style.pointerEvents = "none";
   });
+
+  function resetInfo() {
+    infoBar.innerHTML = '<span>Trésorerie Momo\'s Business — <i>Survolez une bougie pour voir les détails</i></span>';
+  }
+
+  function showColumn(col) {
+    var day = col.getAttribute("data-day");
+    var sale = Number(col.getAttribute("data-sale") || 0);
+    var exp = Number(col.getAttribute("data-exp") || 0);
+    var cash = Number(col.getAttribute("data-cash") || 0);
+    var open = Number(col.getAttribute("data-open") || 0);
+    var net = Number(col.getAttribute("data-net") || 0);
+    var netClass = net >= 0 ? "text-green" : "text-red";
+    infoBar.innerHTML =
+      '<span>Date: <strong style="color:white;">' + day + '</strong></span>' +
+      '<span>Ouverture: <strong style="color:white;">' + open.toFixed(2) + '</strong></span>' +
+      '<span>Ventes encaissées: <strong class="text-green">' + sale.toFixed(2) + '</strong></span>' +
+      '<span>Sorties: <strong class="text-red">' + exp.toFixed(2) + '</strong></span>' +
+      '<span>Variation: <strong class="' + netClass + '">' + (net > 0 ? "+" : "") + net.toFixed(2) + '</strong></span>' +
+      '<span>Trésorerie: <strong style="color:white;">' + cash.toFixed(2) + '</strong></span>';
+  }
+
+  box.addEventListener("mousemove", function(event) {
+    var rect = svg.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    var x = (event.clientX - rect.left) / rect.width * 600;
+    // Les bougies sont placées à x=50, 150, 250, 350, 450, 550
+    // dans le viewBox SVG de 600 unités.
+    var index = Math.round((x - 50) / (500 / 6));
+    if (index < 0 || index >= cols.length) { resetInfo(); return; }
+    var candleX = 50 + index * (500 / 6);
+    var distancePx = Math.abs(x - candleX) * rect.width / 600;
+    if (distancePx > 18) { resetInfo(); return; }
+    showColumn(cols[index]);
+  });
+  box.addEventListener("mouseleave", resetInfo);
 }
 
 function render() {
