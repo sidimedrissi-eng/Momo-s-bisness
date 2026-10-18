@@ -500,7 +500,9 @@ function dashboardPage() {
     maxAbsCumulativeNet = Math.max(maxAbsCumulativeNet, Math.abs(runningNetForScale));
   });
   var zeroY = 165;
-  var movementHeight = 125;
+  // Échelle plus douce pour la ligne de trésorerie : évite qu’elle monte trop haut.
+  // Les bougies gardent leur hauteur, seule la ligne de cumul est moins amplifiée.
+  var movementHeight = 82;
   for (var i = 0; i < chartDays.length; i++) {
     var x = 35 + i * pointSpacing;
     var day = chartDays[i];
@@ -508,14 +510,14 @@ function dashboardPage() {
     var closeY = zeroY - (cumulativeNetValues[i] / maxAbsCumulativeNet) * movementHeight;
     // Ventes : la bougie verte part de zéro et monte.
     if (day.sale > 0) {
-      var greenHeight = Math.max(2, (day.sale / maxMovement) * movementHeight);
+      var greenHeight = Math.max(2, (day.sale / maxMovement) * 125);
       var greenX = x - candleWidth * 0.72;
       candleSvg += '<line x1="' + greenX.toFixed(2) + '" y1="' + (zeroY - greenHeight - 5).toFixed(2) + '" x2="' + greenX.toFixed(2) + '" y2="' + (zeroY + 5).toFixed(2) + '" stroke="#26a69a" stroke-width="1.4" />';
       candleSvg += '<rect x="' + (greenX - candleWidth / 2).toFixed(2) + '" y="' + (zeroY - greenHeight).toFixed(2) + '" width="' + candleWidth.toFixed(2) + '" height="' + greenHeight.toFixed(2) + '" rx="1" fill="#26a69a" stroke="#26a69a" stroke-width="0.5" />';
     }
     // Sorties : la bougie rouge part du même zéro et descend, décalée à droite.
     if (day.exp > 0) {
-      var redHeight = Math.max(2, (day.exp / maxMovement) * movementHeight);
+      var redHeight = Math.max(2, (day.exp / maxMovement) * 125);
       var redX = x + candleWidth * 0.72;
       candleSvg += '<line x1="' + redX.toFixed(2) + '" y1="' + (zeroY - 5).toFixed(2) + '" x2="' + redX.toFixed(2) + '" y2="' + (zeroY + redHeight + 5).toFixed(2) + '" stroke="#ef5350" stroke-width="1.4" />';
       candleSvg += '<rect x="' + (redX - candleWidth / 2).toFixed(2) + '" y="' + zeroY.toFixed(2) + '" width="' + candleWidth.toFixed(2) + '" height="' + redHeight.toFixed(2) + '" rx="1" fill="#ef5350" stroke="#ef5350" stroke-width="0.5" />';
